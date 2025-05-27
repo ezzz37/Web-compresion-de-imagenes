@@ -19,14 +19,18 @@ GO
 
 -- 4) Algoritmos de compresión
 CREATE TABLE dbo.AlgoritmosCompresion (
-    IdAlgoritmoCompresion INT            IDENTITY(1,1) PRIMARY KEY,
-    NombreAlgoritmo       NVARCHAR(50)    NOT NULL UNIQUE
+    IdAlgoritmoCompresion INT         IDENTITY(1,1) PRIMARY KEY,
+    NombreAlgoritmo       NVARCHAR(50) NOT NULL UNIQUE
 );
 GO
 
--- 5) Semilla de algoritmos
+-- 5) Semilla de algoritmos (sólo inserta los que falten)
 INSERT INTO dbo.AlgoritmosCompresion (NombreAlgoritmo)
-VALUES ('JPEG'), ('PNG'), ('RLE');
+SELECT v.Nombre
+FROM (VALUES('JPEG'),('PNG'),('RLE')) AS v(Nombre)
+LEFT JOIN dbo.AlgoritmosCompresion a
+    ON a.NombreAlgoritmo = v.Nombre
+WHERE a.NombreAlgoritmo IS NULL;
 GO
 
 -- 6) Imágenes originales
