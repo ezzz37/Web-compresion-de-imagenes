@@ -77,7 +77,7 @@ namespace Backend.Controllers
         [HttpPost("comparar")]
         public async Task<ActionResult<ComparacionResponseDto>> Comparar([FromBody] CompararDto dto)
         {
-            // 1) Cargo las imágenes
+            // 1) Cargo las imagenes
             var orig = await _db.Imagenes.FindAsync(dto.IdImagenOriginal);
             var proc = await _db.ImagenesProcesadas.FindAsync(dto.IdImagenProcesada);
             if (orig == null || proc == null)
