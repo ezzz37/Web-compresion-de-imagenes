@@ -17,87 +17,91 @@ namespace Backend.Controllers
         private readonly AppDbContext _db;
         private readonly IImageProcessorService _processor;
 
-        public ImagenesProcesadasController(
-            AppDbContext db,
-            IImageProcessorService processor
-        )
+        public ImagenesProcesadasController(AppDbContext db, IImageProcessorService processor)
         {
             _db = db;
             _processor = processor;
         }
 
-        // GET: api/ImagenesProcesadas
         [HttpGet]
         [Produces("application/json")]
         public async Task<ActionResult<IEnumerable<ImagenProcesada>>> GetTodas()
         {
             var lista = await _db.ImagenesProcesadas
-                                 .Include(ip => ip.ImagenOriginal)
-                                 .Include(ip => ip.AlgoritmoCompresion)
-                                 .Include(ip => ip.Comparaciones)
-                                 .ToListAsync();
+                .Include(ip => ip.ImagenOriginal)
+                .Include(ip => ip.AlgoritmoCompresion)
+                .Include(ip => ip.Comparaciones)
+                .ToListAsync();
+
             return Ok(lista);
         }
 
-        // GET: api/ImagenesProcesadas/5
         [HttpGet("{id}")]
         [Produces("application/json")]
-        public async Task<ActionResult<ImagenProcesada>> GetPorId(int id)
+        public async Task<ActionResult<ImagenProcesadaResponseDto>> GetPorId(int id)
         {
             var item = await _db.ImagenesProcesadas
-                                .Include(ip => ip.ImagenOriginal)
-                                .Include(ip => ip.AlgoritmoCompresion)
-                                .Include(ip => ip.Comparaciones)
-                                .FirstOrDefaultAsync(ip => ip.IdImagenProcesada == id);
+                .Include(ip => ip.ImagenOriginal)
+                .Include(ip => ip.AlgoritmoCompresion)
+                .Include(ip => ip.Comparaciones)
+                .FirstOrDefaultAsync(ip => ip.IdImagenProcesada == id);
+
             if (item == null)
                 return NotFound();
-            return Ok(item);
+
+            var dto = new ImagenProcesadaResponseDto
+            {
+                IdImagenProcesada = item.IdImagenProcesada,
+                AnchoResolucion = item.AnchoResolucion,
+                AltoResolucion = item.AltoResolucion,
+                ProfundidadBits = item.ProfundidadBits,
+                FechaProcesamiento = item.FechaProcesamiento,
+                IdAlgoritmoCompresion = item.IdAlgoritmoCompresion.GetValueOrDefault(),
+                IdImagenOriginal = item.IdImagenOriginal,
+                RatioCompresion = item.RatioCompresion,
+                ImagenOriginal = item.ImagenOriginal != null ? item.ImagenOriginal.Nombre : string.Empty,
+                Algoritmo = item.AlgoritmoCompresion != null ? item.AlgoritmoCompresion.NombreAlgoritmo : string.Empty,
+                DatosProcesadosBase64 = item.DatosProcesados != null
+                    ? Convert.ToBase64String(item.DatosProcesados)
+                    : null
+            };
+
+
+
+            return Ok(dto);
         }
 
-        // POST: api/ImagenesProcesadas/procesar/{idImagen}
         [HttpPost("procesar/{idImagen}")]
         [Consumes("application/json")]
         [Produces("application/json")]
-        public async Task<ActionResult<ImagenProcesada>> Procesar(
-            int idImagen,
-            [FromBody] ProcesarDto dto
-        )
+        public async Task<ActionResult<ImagenProcesadaResponseDto>> Procesar(int idImagen, [FromBody] ProcesarDto dto)
         {
-            // Cargar la imagen original
             var orig = await _db.Imagenes.FindAsync(idImagen);
             if (orig == null)
                 return NotFound($"No existe imagen con Id {idImagen}");
 
-            // Validaciones basicas
             if (dto.AnchoResolucion <= 0 || dto.AltoResolucion <= 0)
                 return BadRequest("AnchoResolucion y AltoResolucion deben ser mayores que cero.");
 
             if (dto.ProfundidadBits is not (1 or 8 or 24))
                 return BadRequest("ProfundidadBits debe ser 1, 8 o 24.");
 
-            // Validar algoritmo de compresión
             var formato = dto.Algoritmo?.ToUpperInvariant();
             if (formato != "JPEG" && formato != "PNG")
                 return BadRequest("Algoritmo desconocido. Use 'JPEG' o 'PNG'.");
 
-            // Validar que el IdAlgoritmoCompresion exista
             var existeAlgo = await _db.AlgoritmosCompresion
                 .AnyAsync(a => a.IdAlgoritmoCompresion == dto.IdAlgoritmoCompresion);
             if (!existeAlgo)
                 return BadRequest($"No existe AlgoritmoCompresion con Id {dto.IdAlgoritmoCompresion}.");
 
-            // Procesamiento
-            var muestreado = _processor.Muestrear(
-                orig.DatosImagen, dto.AnchoResolucion, dto.AltoResolucion
-            );
-            var cuantizado = _processor.Cuantizar(
-                muestreado, dto.ProfundidadBits
-            );
-            var comprimido = _processor.Comprimir(
-                cuantizado, formato
-            );
+            var muestreado = _processor.Muestrear(orig.DatosImagen, dto.AnchoResolucion, dto.AltoResolucion);
+            var cuantizado = _processor.Cuantizar(muestreado, dto.ProfundidadBits);
+            var comprimido = _processor.Comprimir(cuantizado, formato);
 
-            //Persistir resultado
+            if (comprimido == null || comprimido.Length == 0)
+                return StatusCode(500, "Error: el procesamiento de la imagen no generó datos.");
+
             var procEnt = new ImagenProcesada
             {
                 IdImagenOriginal = idImagen,
@@ -110,6 +114,7 @@ namespace Backend.Controllers
             };
 
             _db.ImagenesProcesadas.Add(procEnt);
+
             try
             {
                 await _db.SaveChangesAsync();
@@ -119,11 +124,30 @@ namespace Backend.Controllers
                 return BadRequest("No se pudo guardar la imagen procesada. Verifica los datos enviados.");
             }
 
-            return CreatedAtAction(nameof(GetPorId),
-                new { id = procEnt.IdImagenProcesada }, procEnt);
+            var cargado = await _db.ImagenesProcesadas
+                .Include(i => i.ImagenOriginal)
+                .Include(i => i.AlgoritmoCompresion)
+                .FirstOrDefaultAsync(i => i.IdImagenProcesada == procEnt.IdImagenProcesada);
+
+            var dtoResp = new ImagenProcesadaResponseDto
+            {
+                IdImagenProcesada = cargado.IdImagenProcesada,
+                AnchoResolucion = cargado.AnchoResolucion,
+                AltoResolucion = cargado.AltoResolucion,
+                ProfundidadBits = cargado.ProfundidadBits,
+                FechaProcesamiento = cargado.FechaProcesamiento,
+                IdAlgoritmoCompresion = cargado.IdAlgoritmoCompresion.GetValueOrDefault(),
+                RatioCompresion = cargado.RatioCompresion,
+                ImagenOriginal = cargado.ImagenOriginal?.Nombre,
+                Algoritmo = cargado.AlgoritmoCompresion?.NombreAlgoritmo,
+                DatosProcesadosBase64 = cargado.DatosProcesados != null
+                    ? Convert.ToBase64String(cargado.DatosProcesados)
+                    : null
+            };
+
+            return CreatedAtAction(nameof(GetPorId), new { id = dtoResp.IdImagenProcesada }, dtoResp);
         }
 
-        // PUT: api/ImagenesProcesadas/5
         [HttpPut("{id}")]
         [Consumes("application/json")]
         public async Task<IActionResult> Actualizar(int id, [FromBody] ImagenProcesada modelo)
@@ -146,7 +170,6 @@ namespace Backend.Controllers
             return NoContent();
         }
 
-        // DELETE: api/ImagenesProcesadas/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Borrar(int id)
         {

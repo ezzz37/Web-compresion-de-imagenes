@@ -16,7 +16,6 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
-
   max-width: 100vw;
   box-sizing: border-box;
 }
@@ -70,6 +69,7 @@ header h1 {
 }
 
 .image-drop-area {
+  position: relative; /* oblig */
   background: rgba(255 255 255 / 0.15);
   width: 100%;
   height: 180px;
@@ -84,6 +84,24 @@ header h1 {
   padding: 1rem;
   user-select: none;
   font-size: 1rem;
+  overflow: hidden;
+
+  position: relative;
+  z-index: 0;
+}
+
+
+.image-drop-area span {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  color: rgba(255 255 255 / 0.7);
+  font-size: 1rem;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  width: 100%;
 }
 
 .image-drop-area.digitalized {
@@ -180,7 +198,6 @@ input[type="range"] {
   text-align: center;
 }
 
-/* NUEVO: para alinear horizontal muestreo y profundidad */
 .digitalization-row {
   display: flex;
   justify-content: space-between;
