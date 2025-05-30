@@ -9,7 +9,7 @@ const ImageGallery = ({ onClose, onSelect }) => {
   const fetchImages = async () => {
     try {
       const res = await fetch("http://localhost:5288/api/Imagenes");
-      if (!res.ok) throw new Error("Error al obtener las imágenes");
+      if (!res.ok) throw new Error("Error al obtener las imagenes");
       const data = await res.json();
 
       // Eliminar duplicados por nombre
@@ -54,11 +54,24 @@ const ImageGallery = ({ onClose, onSelect }) => {
                     className="image-item"
                     onClick={() => onSelect(image)}
                   >
-                    {image.nombre}
+                    <img
+                      src={`data:image/png;base64,${image.datosImagenBase64}`}
+                      alt={image.nombre}
+                      style={{
+                        width: "80px",
+                        height: "80px",
+                        objectFit: "cover",
+                        borderRadius: "6px",
+                        marginBottom: "0.5rem",
+                      }}
+                    />
+                    <div style={{ fontSize: "0.75rem", fontWeight: "bold" }}>
+                      {image.nombre}
+                    </div>
                   </button>
                 ))
               ) : (
-                <p>No hay imágenes cargadas</p>
+                <p>No hay imagenes cargadas</p>
               )}
             </div>
           )}

@@ -23,13 +23,18 @@ namespace Backend.Controllers
         // GET: api/Imagenes
         [HttpGet]
         [Produces("application/json")]
-        public async Task<ActionResult<IEnumerable<Imagen>>> GetTodas()
+        public async Task<ActionResult<IEnumerable<ImagenDto>>> GetTodas()
         {
-            var lista = await _db.Imagenes
-                                 .Include(i => i.ImagenesProcesadas)
-                                 .Include(i => i.ComparacionesOriginal)
-                                 .ToListAsync();
-            return Ok(lista);
+            var lista = await _db.Imagenes.ToListAsync();
+
+            var resultado = lista.Select(i => new ImagenDto
+            {
+                IdImagen = i.IdImagen,
+                Nombre = i.Nombre,
+                DatosImagenBase64 = Convert.ToBase64String(i.DatosImagen)
+            });
+
+            return Ok(resultado);
         }
 
         // GET: api/Imagenes/5
@@ -46,7 +51,6 @@ namespace Backend.Controllers
         }
 
         // POST: api/Imagenes
-        // Crea una imagen a partir de la entidad completa
         [HttpPost]
         [Consumes("application/json")]
         [Produces("application/json")]
@@ -59,13 +63,11 @@ namespace Backend.Controllers
         }
 
         // POST: api/Imagenes/upload
-        // Subida de archivo real
         [HttpPost("upload")]
         [Consumes("multipart/form-data")]
         [Produces("application/json")]
         public async Task<ActionResult<Imagen>> Upload([FromForm] ImagenUploadDto dto)
         {
-            //Leer bytes del archivo
             byte[] datos;
             using (var ms = new MemoryStream())
             {
@@ -73,7 +75,6 @@ namespace Backend.Controllers
                 datos = ms.ToArray();
             }
 
-            // Extraer dimensiones reales
             int ancho = 0, alto = 0;
             try
             {
@@ -83,10 +84,9 @@ namespace Backend.Controllers
             }
             catch
             {
-                // deja en 0 si falla
+                // Si falla, deja 0
             }
 
-            // Crear entidad y guardar
             var entidad = new Imagen
             {
                 Nombre = dto.Nombre,

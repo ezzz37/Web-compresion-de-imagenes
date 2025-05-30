@@ -11,7 +11,7 @@ public class ImagenProcesadaResponseDto
     public int IdAlgoritmoCompresion { get; set; }
     public int IdImagenOriginal { get; set; }
 
-    public double? RatioCompresion { get; set; } // ✅ Corregido
+    public double? RatioCompresion { get; set; }
 
     public string ImagenOriginal { get; set; } = string.Empty;
     public string Algoritmo { get; set; } = string.Empty;
