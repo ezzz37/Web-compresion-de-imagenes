@@ -36,7 +36,7 @@ const ImageGallery = ({ onClose, onSelect }) => {
     <div className="image-gallery-modal">
       <div className="modal-content">
         <div className="modal-header">
-          <h2>Imágenes Cargadas</h2>
+          <h2>Imagenes Cargadas</h2>
           <button onClick={onClose} className="close-btn">Cerrar</button>
         </div>
 
