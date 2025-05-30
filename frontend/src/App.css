@@ -45,7 +45,7 @@ header h1 {
   display: flex;
   gap: 2rem;
   justify-content: space-between;
-  flex-wrap: nowrap;
+  flex-wrap: wrap; /* Ajuste para que en pantallas pequeñas se acomoden bien */
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
@@ -69,7 +69,7 @@ header h1 {
 }
 
 .image-drop-area {
-  position: relative; /* oblig */
+  position: relative;
   background: rgba(255 255 255 / 0.15);
   width: 100%;
   height: 180px;
@@ -85,11 +85,9 @@ header h1 {
   user-select: none;
   font-size: 1rem;
   overflow: hidden;
-
   position: relative;
   z-index: 0;
 }
-
 
 .image-drop-area span {
   position: absolute;
@@ -208,4 +206,53 @@ input[type="range"] {
 .digitalization-row > .param-group {
   flex: 1 1 45%;
   min-width: 280px;
+}
+
+/* Media Queries para móviles y tablets */
+@media (max-width: 768px) {
+  .App {
+    padding: 1rem;
+  }
+
+  .image-panels {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .panel {
+    min-width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .digitalization-row {
+    flex-direction: column;
+  }
+
+  .digitalization-row > .param-group {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .panel h2 {
+    font-size: 1.25rem;
+  }
+
+  .image-drop-area {
+    height: 150px;
+  }
+
+  button {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .presets button {
+    font-size: 0.75rem;
+  }
+
+  .labels-range {
+    font-size: 0.7rem;
+  }
 }

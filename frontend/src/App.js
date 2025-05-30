@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
+import ImageGallery from "./ImageGallery";
 
 function App() {
   const [resolution, setResolution] = useState(500);
@@ -13,12 +14,12 @@ function App() {
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showGallery, setShowGallery] = useState(false);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setSelectedFile(file);
-
       const reader = new FileReader();
       reader.onloadend = () => {
         setOriginalImagePreviewUrl(reader.result);
@@ -99,21 +100,19 @@ function App() {
 
   const fetchProcessedImageData = async () => {
     if (!processedImage) return;
-  
+
     setLoading(true);
     setError(null);
-  
+
     try {
       const res = await fetch(
         `http://localhost:5288/api/ImagenesProcesadas/${processedImage.idImagenProcesada}`
       );
       if (!res.ok) throw new Error("No se pudo obtener imagen procesada");
-  
+
       const data = await res.json();
-      console.log("DEBUG >> Datos desde backend:", data); // 👈 AGREGADO
-  
       if (!data.DatosProcesadosBase64) throw new Error("Imagen procesada sin datos");
-  
+
       setImagePreviewUrl(`data:image/jpeg;base64,${data.DatosProcesadosBase64}`);
     } catch (err) {
       console.error(err);
@@ -122,9 +121,8 @@ function App() {
       setLoading(false);
     }
   };
-  
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (processedImage) fetchProcessedImageData();
     else setImagePreviewUrl(null);
   }, [processedImage]);
@@ -151,6 +149,21 @@ function App() {
     setError(null);
   };
 
+  const toggleGallery = () => setShowGallery(!showGallery);
+
+  const handleImageSelect = (image) => {
+    setShowGallery(false);
+    setUploadedImage(image);
+    setSelectedFile(null);
+    setProcessedImage(null);
+    setImagePreviewUrl(null);
+    if (image.datosImagenBase64) {
+      setOriginalImagePreviewUrl(`data:image/png;base64,${image.datosImagenBase64}`);
+    } else {
+      setOriginalImagePreviewUrl(null);
+    }
+  };
+
   return (
     <div className="App">
       <header>
@@ -175,7 +188,7 @@ function App() {
                 zIndex: 2,
               }}
             />
-            {!selectedFile && (
+            {!selectedFile && !originalImagePreviewUrl && (
               <span
                 style={{
                   position: "absolute",
@@ -193,7 +206,7 @@ function App() {
                 Arrastra una imagen o haz clic para seleccionar
               </span>
             )}
-            {selectedFile && originalImagePreviewUrl && (
+            {originalImagePreviewUrl && (
               <img
                 src={originalImagePreviewUrl}
                 alt="Vista previa"
@@ -206,6 +219,7 @@ function App() {
               />
             )}
           </div>
+
           <button
             className="btn-primary"
             onClick={handleUpload}
@@ -213,6 +227,7 @@ function App() {
           >
             {loading ? "Subiendo..." : "Cargar Imagen"}
           </button>
+          <button onClick={toggleGallery}>Ver Imágenes Cargadas</button>
         </div>
 
         <div className="panel">
@@ -339,6 +354,13 @@ function App() {
           <p style={{ color: "red", marginTop: "1rem", textAlign: "center" }}>{error}</p>
         )}
       </section>
+
+      {showGallery && (
+        <ImageGallery
+          onClose={toggleGallery}
+          onSelect={handleImageSelect}
+        />
+      )}
     </div>
   );
 }

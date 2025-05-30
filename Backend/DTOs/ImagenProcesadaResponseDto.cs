@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System;
+using System.Text.Json.Serialization;
 
 public class ImagenProcesadaResponseDto
 {
@@ -9,7 +10,9 @@ public class ImagenProcesadaResponseDto
     public DateTime FechaProcesamiento { get; set; }
     public int IdAlgoritmoCompresion { get; set; }
     public int IdImagenOriginal { get; set; }
-    public float? RatioCompresion { get; set; }
+
+    public double? RatioCompresion { get; set; } // ✅ Corregido
+
     public string ImagenOriginal { get; set; } = string.Empty;
     public string Algoritmo { get; set; } = string.Empty;
 
