@@ -281,7 +281,7 @@ function App() {
       </section>
 
       <section className="params">
-        <h2>Parámetros de Digitalización</h2>
+        <h2>Parametros de Digitalizacion</h2>
 
         <div className="digitalization-row">
           <div className="param-group">
