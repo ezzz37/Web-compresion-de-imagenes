@@ -57,7 +57,7 @@ namespace Backend.Models
         public int? IdAlgoritmoCompresion { get; set; }
         public AlgoritmoCompresion AlgoritmoCompresion { get; set; }
 
-        public float? RatioCompresion { get; set; }
+        public double? RatioCompresion { get; set; }
 
         [Required]
         public byte[] DatosProcesados { get; set; }
@@ -81,8 +81,8 @@ namespace Backend.Models
         public int IdImagenProcesada { get; set; }
         public ImagenProcesada ImagenProcesada { get; set; }
 
-        public float? MSE { get; set; }
-        public float? PSNR { get; set; }
+        public double? MSE { get; set; }
+        public double? PSNR { get; set; }
 
         public byte[] ImagenDiferencias { get; set; }
 

@@ -13,7 +13,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
            .LogTo(Console.WriteLine, LogLevel.Information)
 );
 
-// Registrar el servicio de procesamiento de imágenes
+// Registrar el servicio de procesamiento de imagenes
 builder.Services.AddScoped<IImageProcessorService, ImageProcessorService>();
 
 // Configurar CORS para permitir peticiones desde el frontend React (puerto 3000)
