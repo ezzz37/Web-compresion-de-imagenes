@@ -1,12 +1,22 @@
-// App.js
+// src/App.js
 import React, { useState, useEffect } from "react";
 import "./App.css";
-import ImageGallery from "./ImageGallery";
+import ImageGallery from "./Components/ImageGallery/ImageGallery";
+import Login from "./Components/Login/Login";
 
 function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const handleLogin = ({ username, password }) => {
+    // meter logica de autenticacion
+    console.log("Credenciales:", { username, password });
+    setIsLoggedIn(true);
+  };
+
+  // Estados y lógica existentes de la app (digitalizador de imágenes)
   const [resolution, setResolution] = useState(500);
 
-  // Nuevo estado: índice de profundidad de color (0 → 1 bit, 1 → 8 bits, 2 → 24 bits)
+  // índice de profundidad de color (0 → 1 bit, 1 → 8 bits, 2 → 24 bits)
   const [colorDepthIndex, setColorDepthIndex] = useState(1);
   const [colorDepth, setColorDepth] = useState(8);
 
@@ -174,14 +184,12 @@ function App() {
     }
   };
 
-  // Cuando el slider de profundidad cambia, actualizo índice y valor real
   const handleColorDepthChange = (e) => {
     const idx = Number(e.target.value); // 0, 1 o 2
     setColorDepthIndex(idx);
     setColorDepth(DEPTHS[idx]);
   };
 
-  // Permite fijar presets de profundidad desde los botones
   const setDepthPreset = (targetDepth) => {
     const idx = DEPTHS.indexOf(targetDepth);
     if (idx !== -1) {
@@ -190,11 +198,26 @@ function App() {
     }
   };
 
+  // Si no esta logueado, mostrar pantalla de Login
+  if (!isLoggedIn) {
+    return <Login onSubmit={handleLogin} />;
+  }
+
+  // Si ya esta autenticado, mostrar el resto de la aplicación
   return (
     <div className="App">
-      <header>
-        <h1>Digitalizador de Imágenes</h1>
-        <p>Convierte imágenes analógicas a formato digital con diferentes parámetros</p>
+      <header className="app-header">
+        <div>
+          <h1>Digitalizador de Imagenes</h1>
+          <p>Convierte imagenes analógicas a formato digital con diferentes parametros</p>
+        </div>
+        {/* ----- Aquí agregamos el botón de Cerrar Sesion ----- */}
+        <button
+          className="btn-logout"
+          onClick={() => setIsLoggedIn(false)}
+        >
+          Cerrar Sesion
+        </button>
       </header>
 
       <section className="image-panels">
@@ -246,14 +269,17 @@ function App() {
             )}
           </div>
 
-          <button
-            className="btn-primary"
-            onClick={handleUpload}
-            disabled={loading || !selectedFile}
-          >
-            {loading ? "Subiendo..." : "Cargar Imagen"}
-          </button>
-          <button onClick={toggleGallery}>Ver Imágenes Cargadas</button>
+          {/* Botones en línea */}
+          <div style={{ display: "flex", gap: "10px", marginTop: "1rem" }}>
+            <button
+              className="btn-primary"
+              onClick={handleUpload}
+              disabled={loading || !selectedFile}
+            >
+              {loading ? "Subiendo..." : "Cargar Imagen"}
+            </button>
+            <button onClick={toggleGallery}>Ver Imágenes Cargadas</button>
+          </div>
         </div>
 
         <div className="panel">
@@ -314,7 +340,7 @@ function App() {
       </section>
 
       <section className="params">
-        <h2>Parámetros de Digitalización</h2>
+        <h2>Parametros de Digitalizacion</h2>
 
         <div className="digitalization-row">
           {/* MUESTREO (Resolución) */}
@@ -361,11 +387,11 @@ function App() {
           </div>
         </div>
 
-        {/* COMPRESIÓN */}
+        {/* COMPRESION */}
         <div className="param-group">
           <div className="param-label">
-            <h3>Compresión</h3>
-            <span>Nivel de Compresión: {compression}</span>
+            <h3>Compresion</h3>
+            <span>Nivel de Compresion: {compression}</span>
           </div>
           <input
             type="range"
@@ -376,8 +402,8 @@ function App() {
             onChange={(e) => setCompression(Number(e.target.value))}
           />
           <div className="labels-range">
-            <span>Alta Compresión</span>
-            <span>Sin Compresión</span>
+            <span>Alta Compresion</span>
+            <span>Sin Compresion</span>
           </div>
         </div>
 
