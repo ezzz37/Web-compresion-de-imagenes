@@ -57,7 +57,6 @@ namespace Backend.Models
         public int? IdAlgoritmoCompresion { get; set; }
         public AlgoritmoCompresion AlgoritmoCompresion { get; set; }
 
-        // 🔧 Corregido de float? a double?
         public double? RatioCompresion { get; set; }
 
         [Required]

@@ -1,10 +1,15 @@
+// App.js
 import React, { useState, useEffect } from "react";
 import "./App.css";
 import ImageGallery from "./ImageGallery";
 
 function App() {
   const [resolution, setResolution] = useState(500);
+
+  // Nuevo estado: índice de profundidad de color (0 → 1 bit, 1 → 8 bits, 2 → 24 bits)
+  const [colorDepthIndex, setColorDepthIndex] = useState(1);
   const [colorDepth, setColorDepth] = useState(8);
+
   const [compression, setCompression] = useState(0.8);
 
   const [selectedFile, setSelectedFile] = useState(null);
@@ -15,6 +20,9 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showGallery, setShowGallery] = useState(false);
+
+  // Array con las profundidades permitidas
+  const DEPTHS = [1, 8, 24];
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -125,6 +133,7 @@ function App() {
   useEffect(() => {
     if (processedImage) fetchProcessedImageData();
     else setImagePreviewUrl(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [processedImage]);
 
   const handleDownload = () => {
@@ -139,6 +148,7 @@ function App() {
 
   const handleReset = () => {
     setResolution(500);
+    setColorDepthIndex(1);
     setColorDepth(8);
     setCompression(0.8);
     setSelectedFile(null);
@@ -164,11 +174,27 @@ function App() {
     }
   };
 
+  // Cuando el slider de profundidad cambia, actualizo índice y valor real
+  const handleColorDepthChange = (e) => {
+    const idx = Number(e.target.value); // 0, 1 o 2
+    setColorDepthIndex(idx);
+    setColorDepth(DEPTHS[idx]);
+  };
+
+  // Permite fijar presets de profundidad desde los botones
+  const setDepthPreset = (targetDepth) => {
+    const idx = DEPTHS.indexOf(targetDepth);
+    if (idx !== -1) {
+      setColorDepthIndex(idx);
+      setColorDepth(targetDepth);
+    }
+  };
+
   return (
     <div className="App">
       <header>
-        <h1>Digitalizador de Imagenes</h1>
-        <p>Convierte imagenes analogicas a formato digital con diferentes parametros</p>
+        <h1>Digitalizador de Imágenes</h1>
+        <p>Convierte imágenes analógicas a formato digital con diferentes parámetros</p>
       </header>
 
       <section className="image-panels">
@@ -203,7 +229,7 @@ function App() {
                   zIndex: 1,
                 }}
               >
-                Arrastra una imagen o haz clic para seleccionar
+                Arrastra una imagen o hacé clic para seleccionar
               </span>
             )}
             {originalImagePreviewUrl && (
@@ -244,7 +270,14 @@ function App() {
             {!loading && !imagePreviewUrl && <p>No hay imagen procesada</p>}
           </div>
 
-          <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", marginTop: "1rem" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: "10px",
+              marginTop: "1rem",
+            }}
+          >
             <button
               onClick={handleDownload}
               disabled={!imagePreviewUrl || loading}
@@ -281,13 +314,16 @@ function App() {
       </section>
 
       <section className="params">
-        <h2>Parametros de Digitalizacion</h2>
+        <h2>Parámetros de Digitalización</h2>
 
         <div className="digitalization-row">
+          {/* MUESTREO (Resolución) */}
           <div className="param-group">
             <div className="param-label">
               <h3>Muestreo (Resolución)</h3>
-              <span>Resolución: {resolution}x{resolution}</span>
+              <span>
+                Resolución: {resolution}×{resolution}
+              </span>
             </div>
             <input
               type="range"
@@ -297,12 +333,13 @@ function App() {
               onChange={(e) => setResolution(Number(e.target.value))}
             />
             <div className="presets">
-              <button onClick={() => setResolution(100)}>100x100</button>
-              <button onClick={() => setResolution(500)}>500x500</button>
-              <button onClick={() => setResolution(1000)}>1000x1000</button>
+              <button onClick={() => setResolution(100)}>100×100</button>
+              <button onClick={() => setResolution(500)}>500×500</button>
+              <button onClick={() => setResolution(1000)}>1000×1000</button>
             </div>
           </div>
 
+          {/* PROFUNDIDAD DE COLOR */}
           <div className="param-group">
             <div className="param-label">
               <h3>Profundidad de Color</h3>
@@ -310,19 +347,21 @@ function App() {
             </div>
             <input
               type="range"
-              min="1"
-              max="24"
-              value={colorDepth}
-              onChange={(e) => setColorDepth(Number(e.target.value))}
+              min="0"
+              max="2"
+              step="1"
+              value={colorDepthIndex}
+              onChange={handleColorDepthChange}
             />
             <div className="presets">
-              <button onClick={() => setColorDepth(1)}>1 bit (2 colores)</button>
-              <button onClick={() => setColorDepth(8)}>8 bits (256 colores)</button>
-              <button onClick={() => setColorDepth(24)}>24 bits (16.7M colores)</button>
+              <button onClick={() => setDepthPreset(1)}>1 bit (2 colores)</button>
+              <button onClick={() => setDepthPreset(8)}>8 bits (256 colores)</button>
+              <button onClick={() => setDepthPreset(24)}>24 bits (16.7 M colores)</button>
             </div>
           </div>
         </div>
 
+        {/* COMPRESIÓN */}
         <div className="param-group">
           <div className="param-label">
             <h3>Compresión</h3>
@@ -351,15 +390,14 @@ function App() {
         </button>
 
         {error && (
-          <p style={{ color: "red", marginTop: "1rem", textAlign: "center" }}>{error}</p>
+          <p style={{ color: "red", marginTop: "1rem", textAlign: "center" }}>
+            {error}
+          </p>
         )}
       </section>
 
       {showGallery && (
-        <ImageGallery
-          onClose={toggleGallery}
-          onSelect={handleImageSelect}
-        />
+        <ImageGallery onClose={toggleGallery} onSelect={handleImageSelect} />
       )}
     </div>
   );
