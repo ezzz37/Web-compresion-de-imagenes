@@ -1,29 +1,25 @@
-﻿using System;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
-namespace Backend.DTOs
+public class ComparacionResponseDto
 {
-    public class ComparacionResponseDto
-    {
-        [JsonPropertyName("idComparacion")]
-        public int IdComparacion { get; set; }
+    [JsonPropertyName("idComparacion")]
+    public int IdComparacion { get; set; }
 
-        [JsonPropertyName("idImagenOriginal")]
-        public int IdImagenOriginal { get; set; }
+    [JsonPropertyName("idImagenOriginal")]
+    public int IdImagenOriginal { get; set; }
 
-        [JsonPropertyName("idImagenProcesada")]
-        public int IdImagenProcesada { get; set; }
+    [JsonPropertyName("idImagenProcesada")]
+    public int IdImagenProcesada { get; set; }
 
-        [JsonPropertyName("mse")]
-        public double Mse { get; set; }
+    [JsonPropertyName("mse")]
+    public double Mse { get; set; }
 
-        [JsonPropertyName("psnr")]
-        public double Psnr { get; set; }
+    [JsonPropertyName("psnr")]
+    public double Psnr { get; set; }
 
-        [JsonPropertyName("imagenDiferenciasBase64")]
-        public string ImagenDiferenciasBase64 { get; set; }
+    [JsonPropertyName("imagenDiferenciasBase64")]
+    public string? ImagenDiferenciasBase64 { get; set; }
 
-        [JsonPropertyName("fechaComparacion")]
-        public DateTime FechaComparacion { get; set; }
-    }
+    [JsonPropertyName("fechaComparacion")]
+    public DateTime FechaComparacion { get; set; }
 }
