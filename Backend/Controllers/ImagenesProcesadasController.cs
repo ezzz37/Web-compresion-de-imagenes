@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Backend.Data;
+using Backend.DTOs;
 using Backend.Models;
 using Backend.Services;
-using Backend.DTOs;
 
 namespace Backend.Controllers
 {
@@ -23,19 +24,26 @@ namespace Backend.Controllers
             _processor = processor;
         }
 
+        // GET: api/ImagenesProcesadas
+        // Devuelve sólo { IdImagenProcesada, IdImagenOriginal } para poblar el <select> de imágenes procesadas
         [HttpGet]
         [Produces("application/json")]
-        public async Task<ActionResult<IEnumerable<ImagenProcesada>>> GetTodas()
+        public async Task<ActionResult<IEnumerable<ImagenProcesadaSimpleDto>>> GetTodas()
         {
             var lista = await _db.ImagenesProcesadas
-                .Include(ip => ip.ImagenOriginal)
-                .Include(ip => ip.AlgoritmoCompresion)
-                .Include(ip => ip.Comparaciones)
+                .AsNoTracking()
+                .Select(ip => new ImagenProcesadaSimpleDto
+                {
+                    IdImagenProcesada = ip.IdImagenProcesada,
+                    IdImagenOriginal = ip.IdImagenOriginal
+                })
                 .ToListAsync();
 
             return Ok(lista);
         }
 
+        // GET: api/ImagenesProcesadas/5
+        // Devuelve detalles de una ImagenProcesada
         [HttpGet("{id}")]
         [Produces("application/json")]
         public async Task<ActionResult<ImagenProcesadaResponseDto>> GetPorId(int id)
@@ -62,13 +70,15 @@ namespace Backend.Controllers
                 ImagenOriginal = item.ImagenOriginal?.Nombre ?? string.Empty,
                 Algoritmo = item.AlgoritmoCompresion?.NombreAlgoritmo ?? string.Empty,
                 DatosProcesadosBase64 = item.DatosProcesados != null
-                                            ? Convert.ToBase64String(item.DatosProcesados)
-                                            : string.Empty
+                                        ? Convert.ToBase64String(item.DatosProcesados)
+                                        : string.Empty
             };
 
             return Ok(dto);
         }
 
+        // POST: api/ImagenesProcesadas/procesar/{idImagen}
+        // Procesa la imagen original y guarda la nueva ImagenProcesada
         [HttpPost("procesar/{idImagen}")]
         [Consumes("application/json")]
         [Produces("application/json")]
@@ -99,12 +109,8 @@ namespace Backend.Controllers
             // 2) Cuantización
             var cuantizado = _processor.Cuantizar(muestreado, dto.ProfundidadBits);
 
-            // 3) Compresión (ahora sí pasamos el nivel de compresión desde el DTO)
-            var comprimido = _processor.Comprimir(
-                cuantizado,
-                formato!,
-                dto.NivelCompresion
-            );
+            // 3) Compresión
+            var comprimido = _processor.Comprimir(cuantizado, formato!, dto.NivelCompresion);
 
             if (comprimido == null || comprimido.Length == 0)
                 return StatusCode(500, "Error: el procesamiento de la imagen no generó datos.");
@@ -147,13 +153,14 @@ namespace Backend.Controllers
                 ImagenOriginal = cargado.ImagenOriginal?.Nombre ?? string.Empty,
                 Algoritmo = cargado.AlgoritmoCompresion?.NombreAlgoritmo ?? string.Empty,
                 DatosProcesadosBase64 = cargado.DatosProcesados != null
-                                            ? Convert.ToBase64String(cargado.DatosProcesados)
-                                            : string.Empty
+                                        ? Convert.ToBase64String(cargado.DatosProcesados)
+                                        : string.Empty
             };
 
             return CreatedAtAction(nameof(GetPorId), new { id = dtoResp.IdImagenProcesada }, dtoResp);
         }
 
+        // PUT: api/ImagenesProcesadas/5
         [HttpPut("{id}")]
         [Consumes("application/json")]
         public async Task<IActionResult> Actualizar(int id, [FromBody] ImagenProcesada modelo)
@@ -176,6 +183,7 @@ namespace Backend.Controllers
             return NoContent();
         }
 
+        // DELETE: api/ImagenesProcesadas/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Borrar(int id)
         {

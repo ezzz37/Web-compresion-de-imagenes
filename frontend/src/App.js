@@ -3,26 +3,20 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 import ImageGallery from "./Components/ImageGallery/ImageGallery";
 import Login from "./Components/Login/Login";
+import CompareModal from "./Components/Comparacion/CompareModal"; 
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const handleLogin = ({ username, password }) => {
-    // meter lógica de autenticación
     console.log("Credenciales:", { username, password });
     setIsLoggedIn(true);
   };
 
-  // Estados y lógica existentes de la app (digitalizador de imágenes)
   const [resolution, setResolution] = useState(500);
-
-  // índice de profundidad de color (0 → 1 bit, 1 → 8 bits, 2 → 24 bits)
   const [colorDepthIndex, setColorDepthIndex] = useState(1);
   const [colorDepth, setColorDepth] = useState(8);
-
-  // Valor del slider de compresión (0.00 a 1.00)
   const [compression, setCompression] = useState(0.8);
-
   const [selectedFile, setSelectedFile] = useState(null);
   const [originalImagePreviewUrl, setOriginalImagePreviewUrl] = useState(null);
   const [uploadedImage, setUploadedImage] = useState(null);
@@ -32,7 +26,9 @@ function App() {
   const [error, setError] = useState(null);
   const [showGallery, setShowGallery] = useState(false);
 
-  // Array con las profundidades permitidas
+  // ← Nuevo estado para controlar el modal de comparación
+  const [isCompareOpen, setIsCompareOpen] = useState(false);
+
   const DEPTHS = [1, 8, 24];
 
   const handleFileChange = (e) => {
@@ -52,7 +48,6 @@ function App() {
       alert("Por favor seleccioná un archivo primero");
       return;
     }
-
     setLoading(true);
     setError(null);
 
@@ -65,7 +60,6 @@ function App() {
         method: "POST",
         body: formData,
       });
-
       if (!res.ok) throw new Error("Error al subir la imagen");
 
       const data = await res.json();
@@ -84,18 +78,16 @@ function App() {
       alert("Primero subí una imagen");
       return;
     }
-
     setLoading(true);
     setError(null);
 
-    // Aquí se agrega NivelCompresion mapeando compression (0.00–1.00) a 0–100
     const payload = {
       AnchoResolucion: resolution,
       AltoResolucion: resolution,
       ProfundidadBits: colorDepth,
       IdAlgoritmoCompresion: 1,
       Algoritmo: "JPEG",
-      NivelCompresion: Math.round(compression * 100), // <-- NUEVO campo
+      NivelCompresion: Math.round(compression * 100),
     };
 
     try {
@@ -107,9 +99,7 @@ function App() {
           body: JSON.stringify(payload),
         }
       );
-
       if (!res.ok) throw new Error(await res.text());
-
       const data = await res.json();
       setProcessedImage(data);
     } catch (err) {
@@ -121,7 +111,6 @@ function App() {
 
   const fetchProcessedImageData = async () => {
     if (!processedImage) return;
-
     setLoading(true);
     setError(null);
 
@@ -130,11 +119,8 @@ function App() {
         `http://localhost:5288/api/ImagenesProcesadas/${processedImage.idImagenProcesada}`
       );
       if (!res.ok) throw new Error("No se pudo obtener imagen procesada");
-
       const data = await res.json();
       if (!data.DatosProcesadosBase64) throw new Error("Imagen procesada sin datos");
-
-      // Asumimos JPEG en la URL; si fuera PNG, habría que ajustar el media-type
       setImagePreviewUrl(`data:image/jpeg;base64,${data.DatosProcesadosBase64}`);
     } catch (err) {
       console.error(err);
@@ -189,7 +175,7 @@ function App() {
   };
 
   const handleColorDepthChange = (e) => {
-    const idx = Number(e.target.value); // 0, 1 o 2
+    const idx = Number(e.target.value);
     setColorDepthIndex(idx);
     setColorDepth(DEPTHS[idx]);
   };
@@ -202,6 +188,10 @@ function App() {
     }
   };
 
+  // Funciones para abrir/cerrar el modal de comparación
+  const handleOpenCompare = () => setIsCompareOpen(true);
+  const handleCloseCompare = () => setIsCompareOpen(false);
+
   // Si no está logueado, mostrar pantalla de Login
   if (!isLoggedIn) {
     return <Login onSubmit={handleLogin} />;
@@ -213,9 +203,8 @@ function App() {
       <header className="app-header">
         <div>
           <h1>Digitalizador de Imagenes</h1>
-          <p>Convierte imagenes analógicas a formato digital con diferentes parametros</p>
+          <p>Convierte imagenes analógicas a formato digital con diferentes parámetros</p>
         </div>
-        {/* ----- Aquí agregamos el botón de Cerrar Sesion ----- */}
         <button className="btn-logout" onClick={() => setIsLoggedIn(false)}>
           Cerrar Sesion
         </button>
@@ -270,7 +259,6 @@ function App() {
             )}
           </div>
 
-          {/* Botones en línea */}
           <div style={{ display: "flex", gap: "10px", marginTop: "1rem" }}>
             <button
               className="btn-primary"
@@ -344,7 +332,6 @@ function App() {
         <h2>Parametros de Digitalizacion</h2>
 
         <div className="digitalization-row">
-          {/* MUESTREO (Resolución) */}
           <div className="param-group">
             <div className="param-label">
               <h3>Muestreo (Resolución)</h3>
@@ -366,7 +353,6 @@ function App() {
             </div>
           </div>
 
-          {/* PROFUNDIDAD DE COLOR */}
           <div className="param-group">
             <div className="param-label">
               <h3>Profundidad de Color</h3>
@@ -388,7 +374,6 @@ function App() {
           </div>
         </div>
 
-        {/* COMPRESION */}
         <div className="param-group">
           <div className="param-label">
             <h3>Compresion</h3>
@@ -408,13 +393,31 @@ function App() {
           </div>
         </div>
 
-        <button
-          className="btn-primary"
-          onClick={handleProcess}
-          disabled={loading || !uploadedImage}
-        >
-          {loading ? "Procesando..." : "Procesar Imagen"}
-        </button>
+        <div style={{ display: "flex", gap: "10px", marginTop: "1rem" }}>
+          <button
+            className="btn-primary"
+            onClick={handleProcess}
+            disabled={loading || !uploadedImage}
+          >
+            {loading ? "Procesando..." : "Procesar Imagen"}
+          </button>
+
+          <button
+            className="btn-secondary"
+            onClick={handleOpenCompare}
+            disabled={loading}
+            style={{
+              backgroundColor: "#1976d2",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              cursor: loading ? "not-allowed" : "pointer",
+              padding: "0.5rem 1rem",
+            }}
+          >
+            Comparar Imágenes
+          </button>
+        </div>
 
         {error && (
           <p style={{ color: "red", marginTop: "1rem", textAlign: "center" }}>
@@ -425,6 +428,11 @@ function App() {
 
       {showGallery && (
         <ImageGallery onClose={toggleGallery} onSelect={handleImageSelect} />
+      )}
+
+      {/* Renderizamos el modal de comparación cuando isCompareOpen === true */}
+      {isCompareOpen && (
+        <CompareModal isOpen={isCompareOpen} onClose={() => setIsCompareOpen(false)} />
       )}
     </div>
   );
