@@ -8,7 +8,7 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const handleLogin = ({ username, password }) => {
-    // meter logica de autenticacion
+    // meter lógica de autenticación
     console.log("Credenciales:", { username, password });
     setIsLoggedIn(true);
   };
@@ -20,6 +20,7 @@ function App() {
   const [colorDepthIndex, setColorDepthIndex] = useState(1);
   const [colorDepth, setColorDepth] = useState(8);
 
+  // Valor del slider de compresión (0.00 a 1.00)
   const [compression, setCompression] = useState(0.8);
 
   const [selectedFile, setSelectedFile] = useState(null);
@@ -87,12 +88,14 @@ function App() {
     setLoading(true);
     setError(null);
 
+    // Aquí se agrega NivelCompresion mapeando compression (0.00–1.00) a 0–100
     const payload = {
       AnchoResolucion: resolution,
       AltoResolucion: resolution,
       ProfundidadBits: colorDepth,
       IdAlgoritmoCompresion: 1,
       Algoritmo: "JPEG",
+      NivelCompresion: Math.round(compression * 100), // <-- NUEVO campo
     };
 
     try {
@@ -131,6 +134,7 @@ function App() {
       const data = await res.json();
       if (!data.DatosProcesadosBase64) throw new Error("Imagen procesada sin datos");
 
+      // Asumimos JPEG en la URL; si fuera PNG, habría que ajustar el media-type
       setImagePreviewUrl(`data:image/jpeg;base64,${data.DatosProcesadosBase64}`);
     } catch (err) {
       console.error(err);
@@ -198,12 +202,12 @@ function App() {
     }
   };
 
-  // Si no esta logueado, mostrar pantalla de Login
+  // Si no está logueado, mostrar pantalla de Login
   if (!isLoggedIn) {
     return <Login onSubmit={handleLogin} />;
   }
 
-  // Si ya esta autenticado, mostrar el resto de la aplicación
+  // Si ya está autenticado, mostrar el resto de la aplicación
   return (
     <div className="App">
       <header className="app-header">
@@ -212,10 +216,7 @@ function App() {
           <p>Convierte imagenes analógicas a formato digital con diferentes parametros</p>
         </div>
         {/* ----- Aquí agregamos el botón de Cerrar Sesion ----- */}
-        <button
-          className="btn-logout"
-          onClick={() => setIsLoggedIn(false)}
-        >
+        <button className="btn-logout" onClick={() => setIsLoggedIn(false)}>
           Cerrar Sesion
         </button>
       </header>

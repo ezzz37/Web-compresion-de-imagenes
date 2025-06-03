@@ -59,14 +59,12 @@ namespace Backend.Controllers
                 IdAlgoritmoCompresion = item.IdAlgoritmoCompresion.GetValueOrDefault(),
                 IdImagenOriginal = item.IdImagenOriginal,
                 RatioCompresion = item.RatioCompresion,
-                ImagenOriginal = item.ImagenOriginal != null ? item.ImagenOriginal.Nombre : string.Empty,
-                Algoritmo = item.AlgoritmoCompresion != null ? item.AlgoritmoCompresion.NombreAlgoritmo : string.Empty,
+                ImagenOriginal = item.ImagenOriginal?.Nombre ?? string.Empty,
+                Algoritmo = item.AlgoritmoCompresion?.NombreAlgoritmo ?? string.Empty,
                 DatosProcesadosBase64 = item.DatosProcesados != null
-                    ? Convert.ToBase64String(item.DatosProcesados)
-                    : null
+                                            ? Convert.ToBase64String(item.DatosProcesados)
+                                            : string.Empty
             };
-
-
 
             return Ok(dto);
         }
@@ -95,9 +93,18 @@ namespace Backend.Controllers
             if (!existeAlgo)
                 return BadRequest($"No existe AlgoritmoCompresion con Id {dto.IdAlgoritmoCompresion}.");
 
+            // 1) Muestreo
             var muestreado = _processor.Muestrear(orig.DatosImagen, dto.AnchoResolucion, dto.AltoResolucion);
+
+            // 2) Cuantización
             var cuantizado = _processor.Cuantizar(muestreado, dto.ProfundidadBits);
-            var comprimido = _processor.Comprimir(cuantizado, formato);
+
+            // 3) Compresión (ahora sí pasamos el nivel de compresión desde el DTO)
+            var comprimido = _processor.Comprimir(
+                cuantizado,
+                formato!,
+                dto.NivelCompresion
+            );
 
             if (comprimido == null || comprimido.Length == 0)
                 return StatusCode(500, "Error: el procesamiento de la imagen no generó datos.");
@@ -114,7 +121,6 @@ namespace Backend.Controllers
             };
 
             _db.ImagenesProcesadas.Add(procEnt);
-
             try
             {
                 await _db.SaveChangesAsync();
@@ -138,11 +144,11 @@ namespace Backend.Controllers
                 FechaProcesamiento = cargado.FechaProcesamiento,
                 IdAlgoritmoCompresion = cargado.IdAlgoritmoCompresion.GetValueOrDefault(),
                 RatioCompresion = cargado.RatioCompresion,
-                ImagenOriginal = cargado.ImagenOriginal?.Nombre,
-                Algoritmo = cargado.AlgoritmoCompresion?.NombreAlgoritmo,
+                ImagenOriginal = cargado.ImagenOriginal?.Nombre ?? string.Empty,
+                Algoritmo = cargado.AlgoritmoCompresion?.NombreAlgoritmo ?? string.Empty,
                 DatosProcesadosBase64 = cargado.DatosProcesados != null
-                    ? Convert.ToBase64String(cargado.DatosProcesados)
-                    : null
+                                            ? Convert.ToBase64String(cargado.DatosProcesados)
+                                            : string.Empty
             };
 
             return CreatedAtAction(nameof(GetPorId), new { id = dtoResp.IdImagenProcesada }, dtoResp);

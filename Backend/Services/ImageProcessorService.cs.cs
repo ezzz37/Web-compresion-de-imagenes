@@ -45,7 +45,7 @@ namespace Backend.Services
             return ms.ToArray();
         }
 
-        public byte[] Comprimir(byte[] datos, string algoritmo)
+        public byte[] Comprimir(byte[] datos, string algoritmo, int nivel)
         {
             using var image = Image.Load<Rgba32>(datos);
             using var ms = new MemoryStream();
@@ -53,24 +53,25 @@ namespace Backend.Services
             switch (algoritmo.ToUpperInvariant())
             {
                 case "JPEG":
-                    image.Save(ms, new JpegEncoder { Quality = 75 });
+                    // Clamp entre 1 y 100 (no conviene pasar 0)
+                    int calidad = Math.Clamp(nivel, 1, 100);
+                    image.Save(ms, new JpegEncoder { Quality = calidad });
                     break;
 
                 case "PNG":
-                    image.Save(ms, new PngEncoder());
+                    // SixLabors.ImageSharp define PngCompressionLevel de 0 a 9
+                    // (0 = no compresión, 9 = mejor compresión)
+                    int nivelPng = Math.Clamp(nivel, 0, 9);
+                    image.Save(ms, new PngEncoder { CompressionLevel = (PngCompressionLevel)nivelPng });
                     break;
 
                 default:
                     throw new NotSupportedException($"Algoritmo no soportado: {algoritmo}");
             }
 
-            var result = ms.ToArray();
-
-            if (result == null || result.Length == 0)
-                throw new InvalidOperationException("La imagen comprimida está vacía.");
-
-            return result;
+            return ms.ToArray();
         }
+
 
         public async Task<(double mse, double psnr, byte[] diff)> CompararAsync(byte[] original, byte[] procesada)
         {
