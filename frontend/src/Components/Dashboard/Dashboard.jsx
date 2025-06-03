@@ -1,18 +1,9 @@
-// src/App.js
-import React, { useState, useEffect } from "react";
-import "./App.css";
-import ImageGallery from "./Components/ImageGallery/ImageGallery";
-import Login from "./Components/Login/Login";
-import CompareModal from "./Components/Comparacion/CompareModal"; 
+import React, { useState } from "react";
+import ImageGallery from "../ImageGallery/ImageGallery";
+import CompareModal from "../Comparacion/CompareModal";
+import "./Dashboard.css";
 
-function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  const handleLogin = ({ username, password }) => {
-    console.log("Credenciales:", { username, password });
-    setIsLoggedIn(true);
-  };
-
+export default function Dashboard({ onLogout }) {
   const [resolution, setResolution] = useState(500);
   const [colorDepthIndex, setColorDepthIndex] = useState(1);
   const [colorDepth, setColorDepth] = useState(8);
@@ -25,8 +16,6 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showGallery, setShowGallery] = useState(false);
-
-  // ← Nuevo estado para controlar el modal de comparación
   const [isCompareOpen, setIsCompareOpen] = useState(false);
 
   const DEPTHS = [1, 8, 24];
@@ -36,9 +25,7 @@ function App() {
     if (file) {
       setSelectedFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setOriginalImagePreviewUrl(reader.result);
-      };
+      reader.onloadend = () => setOriginalImagePreviewUrl(reader.result);
       reader.readAsDataURL(file);
     }
   };
@@ -56,15 +43,16 @@ function App() {
       formData.append("Archivo", selectedFile);
       formData.append("Nombre", selectedFile.name);
 
-      const res = await fetch("http://localhost:5288/api/Imagenes/upload", {
-        method: "POST",
-        body: formData,
-      });
+      const res = await fetch(
+        "http://localhost:5288/api/Imagenes/upload",
+        { method: "POST", body: formData }
+      );
       if (!res.ok) throw new Error("Error al subir la imagen");
 
       const data = await res.json();
       setUploadedImage(data);
       setProcessedImage(null);
+      setImagePreviewUrl(null);
       alert("Imagen subida correctamente");
     } catch (err) {
       setError(err.message);
@@ -101,40 +89,53 @@ function App() {
       );
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
+
+      // ¡ACÁ EL CAMPO DEBE IR CON MAYÚSCULA!
+      if (!data.DatosProcesadosBase64 || data.DatosProcesadosBase64.trim() === "") {
+        setError("La imagen fue procesada, pero el servidor no retornó los datos de la imagen (DatosProcesadosBase64).");
+        setProcessedImage(null);
+        setImagePreviewUrl(null);
+        return;
+      }
+
+      // El MIME se detecta según el algoritmo recibido
+      const mime = data.algoritmo?.toLowerCase() === "png" ? "png" : "jpeg";
+      setImagePreviewUrl(`data:image/${mime};base64,${data.DatosProcesadosBase64}`);
       setProcessedImage(data);
     } catch (err) {
       setError(err.message);
+      setProcessedImage(null);
+      setImagePreviewUrl(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchProcessedImageData = async () => {
-    if (!processedImage) return;
+  // Si quieres poder ver de nuevo una imagen procesada desde la galería o el historial:
+  const fetchProcessedImageById = async (id) => {
     setLoading(true);
     setError(null);
-
     try {
-      const res = await fetch(
-        `http://localhost:5288/api/ImagenesProcesadas/${processedImage.idImagenProcesada}`
-      );
+      const res = await fetch(`http://localhost:5288/api/ImagenesProcesadas/${id}`);
       if (!res.ok) throw new Error("No se pudo obtener imagen procesada");
       const data = await res.json();
-      if (!data.DatosProcesadosBase64) throw new Error("Imagen procesada sin datos");
-      setImagePreviewUrl(`data:image/jpeg;base64,${data.DatosProcesadosBase64}`);
+      if (!data.DatosProcesadosBase64 || data.DatosProcesadosBase64.trim() === "") {
+        setError("La imagen seleccionada no tiene datos de imagen procesada.");
+        setProcessedImage(null);
+        setImagePreviewUrl(null);
+        return;
+      }
+      const mime = data.algoritmo?.toLowerCase() === "png" ? "png" : "jpeg";
+      setImagePreviewUrl(`data:image/${mime};base64,${data.DatosProcesadosBase64}`);
+      setProcessedImage(data);
     } catch (err) {
-      console.error(err);
       setError(err.message);
+      setProcessedImage(null);
+      setImagePreviewUrl(null);
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (processedImage) fetchProcessedImageData();
-    else setImagePreviewUrl(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [processedImage]);
 
   const handleDownload = () => {
     if (!imagePreviewUrl) return;
@@ -172,6 +173,10 @@ function App() {
     } else {
       setOriginalImagePreviewUrl(null);
     }
+    // Si seleccionás una imagen procesada de la galería, cargarla:
+    if (image.idImagenProcesada) {
+      fetchProcessedImageById(image.idImagenProcesada);
+    }
   };
 
   const handleColorDepthChange = (e) => {
@@ -188,25 +193,18 @@ function App() {
     }
   };
 
-  // Funciones para abrir/cerrar el modal de comparación
   const handleOpenCompare = () => setIsCompareOpen(true);
   const handleCloseCompare = () => setIsCompareOpen(false);
 
-  // Si no está logueado, mostrar pantalla de Login
-  if (!isLoggedIn) {
-    return <Login onSubmit={handleLogin} />;
-  }
-
-  // Si ya está autenticado, mostrar el resto de la aplicación
   return (
     <div className="App">
       <header className="app-header">
         <div>
-          <h1>Digitalizador de Imagenes</h1>
-          <p>Convierte imagenes analógicas a formato digital con diferentes parámetros</p>
+          <h1>Digitalizador de Imágenes</h1>
+          <p>Convierte imágenes analógicas a formato digital con diferentes parámetros</p>
         </div>
-        <button className="btn-logout" onClick={() => setIsLoggedIn(false)}>
-          Cerrar Sesion
+        <button className="btn-logout" onClick={onLogout}>
+          Cerrar Sesión
         </button>
       </header>
 
@@ -276,11 +274,13 @@ function App() {
           <div className="image-drop-area digitalized">
             {loading && <p>Cargando...</p>}
             {!loading && imagePreviewUrl && (
-              <img
-                src={imagePreviewUrl}
-                alt="Imagen digitalizada"
-                style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
-              />
+              <>
+                <img
+                  src={imagePreviewUrl}
+                  alt="Imagen digitalizada"
+                  style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
+                />
+              </>
             )}
             {!loading && !imagePreviewUrl && <p>No hay imagen procesada</p>}
           </div>
@@ -329,7 +329,7 @@ function App() {
       </section>
 
       <section className="params">
-        <h2>Parametros de Digitalizacion</h2>
+        <h2>Parámetros de Digitalización</h2>
 
         <div className="digitalization-row">
           <div className="param-group">
@@ -376,8 +376,8 @@ function App() {
 
         <div className="param-group">
           <div className="param-label">
-            <h3>Compresion</h3>
-            <span>Nivel de Compresion: {compression}</span>
+            <h3>Compresión</h3>
+            <span>Nivel de Compresión: {compression}</span>
           </div>
           <input
             type="range"
@@ -388,8 +388,8 @@ function App() {
             onChange={(e) => setCompression(Number(e.target.value))}
           />
           <div className="labels-range">
-            <span>Alta Compresion</span>
-            <span>Sin Compresion</span>
+            <span>Alta Compresión</span>
+            <span>Sin Compresión</span>
           </div>
         </div>
 
@@ -430,12 +430,9 @@ function App() {
         <ImageGallery onClose={toggleGallery} onSelect={handleImageSelect} />
       )}
 
-      {/* Renderizamos el modal de comparación cuando isCompareOpen === true */}
       {isCompareOpen && (
-        <CompareModal isOpen={isCompareOpen} onClose={() => setIsCompareOpen(false)} />
+        <CompareModal isOpen={isCompareOpen} onClose={handleCloseCompare} />
       )}
     </div>
   );
 }
-
-export default App;
