@@ -1,0 +1,13 @@
+# Ignorar la carpeta .vs de Visual Studio
+.vs/
+
+# Ignorar carpetas de compilacion
+bin/
+obj/
+
+# Ignorar paquetes de NuGet
+packages/
+
+# Ignorar archivos de usuario de Visual Studio
+*.suo
+*.user

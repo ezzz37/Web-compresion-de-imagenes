@@ -1,0 +1,106 @@
+.login-page {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #FFA445, #FF5C7B);
+  }
+  
+  .login-card {
+    width: 350px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+  }
+  
+  .login-header {
+    background: linear-gradient(135deg, #FFA445, #FF5C7B);
+    height: 100px;
+    position: relative;
+  }
+  
+  .icon-circle {
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #fff;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .login-body {
+    padding: 50px 30px 30px;
+  }
+  
+  .login-title {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 24px;
+    color: #2c2c2c;
+    font-weight: 600;
+  }
+  
+  /* 7. Formulario y campos */
+  .login-form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .login-form label {
+    font-size: 14px;
+    color: #4a4a4a;
+    margin-bottom: 5px;
+    margin-top: 15px;
+  }
+  
+  .login-form input {
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  
+  .login-form input:focus {
+    border-color: #FF7B00;
+  }
+  
+  /* 8. Botón Ingresar */
+  .btn-login {
+    margin-top: 25px;
+    padding: 12px;
+    font-size: 16px;
+    background: linear-gradient(135deg, #FFA445, #FF5C7B);
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  
+  .btn-login:hover {
+    opacity: 0.9;
+  }
+  
+  .forgot-link {
+    display: block;
+    margin-top: 20px;
+    text-align: center;
+    font-size: 14px;
+    color: #4a4a4a;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  
+  .forgot-link:hover {
+    color: #FF5C7B;
+  }
+  
