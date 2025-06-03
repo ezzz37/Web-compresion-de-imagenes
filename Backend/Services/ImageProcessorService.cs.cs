@@ -53,14 +53,11 @@ namespace Backend.Services
             switch (algoritmo.ToUpperInvariant())
             {
                 case "JPEG":
-                    // Clamp entre 1 y 100 (no conviene pasar 0)
                     int calidad = Math.Clamp(nivel, 1, 100);
                     image.Save(ms, new JpegEncoder { Quality = calidad });
                     break;
 
                 case "PNG":
-                    // SixLabors.ImageSharp define PngCompressionLevel de 0 a 9
-                    // (0 = no compresión, 9 = mejor compresión)
                     int nivelPng = Math.Clamp(nivel, 0, 9);
                     image.Save(ms, new PngEncoder { CompressionLevel = (PngCompressionLevel)nivelPng });
                     break;
