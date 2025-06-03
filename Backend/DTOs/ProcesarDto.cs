@@ -15,9 +15,13 @@ namespace Backend.DTOs
         public byte ProfundidadBits { get; set; }
 
         [Required]
-        public string? Algoritmo { get; set; }
+        public string Algoritmo { get; set; } = string.Empty;
 
         [Required]
         public int IdAlgoritmoCompresion { get; set; }
+
+        [Required]
+        [Range(0, 100, ErrorMessage = "El nivel de compresión debe estar entre 0 y 100.")]
+        public int NivelCompresion { get; set; }
     }
 }
