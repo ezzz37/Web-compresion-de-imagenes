@@ -76,7 +76,6 @@ function App() {
         }
       />
 
-      {/* Cualquier ruta no definida */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
