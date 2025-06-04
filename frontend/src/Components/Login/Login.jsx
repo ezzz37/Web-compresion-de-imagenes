@@ -1,5 +1,3 @@
-// src/components/Login/Login.jsx
-
 import React, { useState } from 'react';
 import { FaUser } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
@@ -16,12 +14,17 @@ const Login = () => {
     e.preventDefault();
     setError('');
 
-    try {
-      const response = await api.post('/Auth/Login', {
-        username: username,
-        password: password
+    // Limpia cualquier token previo por seguridad
+    localStorage.removeItem('token');
+    localStorage.removeItem('tokenExpiration');
 
-      });
+    try {
+      // Envía la request SIN el header Authorization, aunque haya un token viejo
+      const response = await api.post(
+        '/auth/login', // ← URL correcta para tu backend
+        { username, password },
+        { headers: { Authorization: '' } }
+      );
 
       const { token, expiration } = response.data;
 
@@ -31,9 +34,13 @@ const Login = () => {
         navigate('/dashboard');
       } else {
         setError('Respuesta inválida del servidor.');
+        localStorage.removeItem('token');
+        localStorage.removeItem('tokenExpiration');
       }
     } catch (err) {
       console.error(err);
+      localStorage.removeItem('token');
+      localStorage.removeItem('tokenExpiration');
       if (err.response?.status === 401) {
         setError('Usuario o contraseña inválidos.');
       } else {

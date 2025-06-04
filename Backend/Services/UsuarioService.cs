@@ -16,23 +16,32 @@ namespace Backend.Services
 
         public async Task<int?> ValidarCredencialesAsync(string username, string passwordPlano)
         {
-            using var cmd = _context.Database.GetDbConnection().CreateCommand();
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.CommandText = "dbo.sp_ValidarUsuario";
+            var connection = _context.Database.GetDbConnection();
 
-            cmd.Parameters.Add(new SqlParameter("@Username", SqlDbType.NVarChar, 50) { Value = username });
-            cmd.Parameters.Add(new SqlParameter("@PasswordInput", SqlDbType.NVarChar, -1) { Value = passwordPlano });
+            try
+            {
+                using var cmd = connection.CreateCommand();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "dbo.sp_ValidarUsuario";
 
-            if (cmd.Connection.State != ConnectionState.Open)
-                await cmd.Connection.OpenAsync();
+                cmd.Parameters.Add(new SqlParameter("@Username", SqlDbType.NVarChar, 50) { Value = username });
+                cmd.Parameters.Add(new SqlParameter("@PasswordInput", SqlDbType.NVarChar, -1) { Value = passwordPlano });
 
-            var resultado = await cmd.ExecuteScalarAsync();
-            await cmd.Connection.CloseAsync();
+                if (connection.State != ConnectionState.Open)
+                    await connection.OpenAsync();
 
-            if (resultado != null && int.TryParse(resultado.ToString(), out int idUsuario))
-                return idUsuario;
+                var resultado = await cmd.ExecuteScalarAsync();
 
-            return null;
+                if (resultado != null && int.TryParse(resultado.ToString(), out int idUsuario))
+                    return idUsuario;
+
+                return null;
+            }
+            finally
+            {
+                if (connection.State == ConnectionState.Open)
+                    await connection.CloseAsync();
+            }
         }
     }
 }
