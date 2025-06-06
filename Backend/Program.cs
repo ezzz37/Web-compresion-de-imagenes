@@ -6,21 +6,21 @@ using System.Text.Json.Serialization;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.Extensions.Options;
 
+// 1) Crear el builder
 var builder = WebApplication.CreateBuilder(args);
 
-// 1) Configurar DbContext
+// 2) Configurar DbContext con la cadena "DefaultConnection"
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ConexionPrincipal"))
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
            .LogTo(Console.WriteLine, LogLevel.Information)
 );
 
-// 2) Registrar servicios propios
+// 3) Registrar servicios propios
 builder.Services.AddScoped<IImageProcessorService, ImageProcessorService>();
 builder.Services.AddScoped<UsuarioService>();
 
-// 3) Leer JwtSettings desde appsettings.json
+// 4) Leer y configurar JWT desde appsettings.json
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
 if (jwtSettings == null)
@@ -29,7 +29,7 @@ if (jwtSettings == null)
 }
 var keyBytes = Encoding.UTF8.GetBytes(jwtSettings.SecretKey);
 
-// 4) Configurar JWT Bearer Authentication
+// 5) Configurar autenticación JWT
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -37,68 +37,67 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false;
+    options.RequireHttpsMetadata = false; // Importante para desarrollo local
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidIssuer = jwtSettings.Issuer,
-
         ValidateAudience = true,
         ValidAudience = jwtSettings.Audience,
-
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
-
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
 });
 
-// 5) Registrar Authorization (requerido para [Authorize])
+// 6) Registrar autorización
 builder.Services.AddAuthorization();
 
-// 6) Configurar CORS para permitir llamadas desde React en localhost:3000
+// 7) Configurar CORS para React en localhost:3000
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactPolicy", policy =>
         policy.WithOrigins("http://localhost:3000")
               .AllowAnyMethod()
               .AllowAnyHeader()
-    //.AllowCredentials() // Descomentar SOLO si usás cookies o withCredentials:true en Axios
+    // .AllowCredentials() // Descomentar SOLO si usás cookies o withCredentials:true en Axios
     );
 });
 
-// 7) Agregar controladores + JSON
+// 8) Configurar controladores y JSON
 builder.Services.AddControllers()
     .AddJsonOptions(opts =>
     {
         opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
 
-// 8) Swagger / OpenAPI
+// 9) Swagger / OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// 9) En desarrollo, habilitar Swagger
+// 10) Habilitar Swagger en desarrollo
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+// 11) Habilitar HTTPS Redirection (puede mostrar warning si no está configurado en dev, pero no es grave)
 app.UseHttpsRedirection();
 
-// 10) Habilitar CORS (antes de Auth)
+// 12) Habilitar CORS antes de autenticación
 app.UseCors("ReactPolicy");
 
-// 11) Habilitar Autenticación y Autorización
+// 13) Habilitar autenticación y autorización
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 12) Mapear controllers
+// 14) Mapear controladores
 app.MapControllers();
 
+// 15) Ejecutar la aplicación
 app.Run();
