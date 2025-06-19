@@ -21,7 +21,7 @@ const Login = () => {
     try {
       // Envia la request SIN el header Authorization, aunque haya un token viejo
       const response = await api.post(
-        '/auth/login', // ← URL correcta para tu backend
+        '/auth/login',
         { username, password },
         { headers: { Authorization: '' } }
       );

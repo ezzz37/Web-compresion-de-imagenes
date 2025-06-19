@@ -8,7 +8,7 @@ const ImageGallery = ({ onClose, onSelect }) => {
 
   const fetchImages = async () => {
     try {
-      const res = await fetch("http://conversordeimagenes.somee.com/api/Imagenes");
+      const res = await fetch("https://www.conversordeimagenes.somee.com/api/Imagenes");
       if (!res.ok) throw new Error("Error al obtener las imagenes");
       const data = await res.json();
 

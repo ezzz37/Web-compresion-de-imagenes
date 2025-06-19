@@ -3,17 +3,17 @@ import api from '../../api/axios';
 import './CompareModal.css';
 
 export default function CompareModal({ isOpen, onClose }) {
-  //–– 1) lista original de imágenes ––
+  //–– 1) lista original de imagenes ––
   const [originalImages, setOriginalImages] = useState([]);
   const [loadingOriginals, setLoadingOriginals] = useState(false);
   const [errorOriginals, setErrorOriginals] = useState('');
 
-  //–– 2) lista de imágenes procesadas ––
+  //–– 2) lista de imagenes procesadas ––
   const [processedImages, setProcessedImages] = useState([]);
   const [loadingProcessed, setLoadingProcessed] = useState(false);
   const [errorProcessed, setErrorProcessed] = useState('');
 
-  //–– 3) estados de comparación ––
+  //–– 3) estados de comparacin ––
   const [selectedOriginalId, setSelectedOriginalId] = useState('');
   const [selectedProcessedId, setSelectedProcessedId] = useState('');
   const [comparisonData, setComparisonData] = useState(null);
@@ -47,8 +47,8 @@ export default function CompareModal({ isOpen, onClose }) {
         setOriginalImages(arr);
       })
       .catch(err => {
-        console.error('Error cargando imágenes originales:', err);
-        setErrorOriginals('No se pudo cargar las imágenes originales.');
+        console.error('Error cargando imagenes originales:', err);
+        setErrorOriginals('No se pudo cargar las imagenes originales.');
       })
       .finally(() => setLoadingOriginals(false));
 
@@ -62,7 +62,7 @@ export default function CompareModal({ isOpen, onClose }) {
         setProcessedImages(arr);
       })
       .catch(err => {
-        console.error('Error cargando imágenes procesadas:', err);
+        console.error('Error cargando imagenes procesadas:', err);
         setErrorProcessed('No se pudo cargar las imágenes procesadas.');
       })
       .finally(() => setLoadingProcessed(false));
@@ -73,7 +73,7 @@ export default function CompareModal({ isOpen, onClose }) {
     setComparisonData(null);
 
     if (!selectedOriginalId || !selectedProcessedId) {
-      setErrorCompare('Debes seleccionar ambas imágenes.');
+      setErrorCompare('Debes seleccionar ambas imagenes.');
       return;
     }
     if (selectedOriginalId === selectedProcessedId) {
@@ -96,7 +96,7 @@ export default function CompareModal({ isOpen, onClose }) {
         });
       })
       .catch(err => {
-        console.error('Error al comparar imágenes:', err);
+        console.error('Error al comparar imagenes:', err);
         setErrorCompare('Error al cargar los datos de comparación.');
       })
       .finally(() => setLoadingCompare(false));

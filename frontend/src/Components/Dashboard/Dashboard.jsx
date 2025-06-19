@@ -44,7 +44,7 @@ export default function Dashboard({ onLogout }) {
       formData.append("Nombre", selectedFile.name);
 
       const res = await fetch(
-        "http://conversordeimagenes.somee.com/api/Imagenes/upload",
+        "https://www.conversordeimagenes.somee.com/api/Imagenes/upload",
         { method: "POST", body: formData }
       );
       if (!res.ok) throw new Error("Error al subir la imagen");
@@ -80,7 +80,7 @@ export default function Dashboard({ onLogout }) {
 
     try {
       const res = await fetch(
-        `http://conversordeimagenes.somee.com/api/ImagenesProcesadas/procesar/${uploadedImage.idImagen}`,
+        `https://www.conversordeimagenes.somee.com/api/ImagenesProcesadas/procesar/${uploadedImage.idImagen}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -91,7 +91,7 @@ export default function Dashboard({ onLogout }) {
       const data = await res.json();
 
       if (!data.DatosProcesadosBase64 || data.DatosProcesadosBase64.trim() === "") {
-        setError("La imagen fue procesada, pero el servidor no retornó los datos de la imagen (DatosProcesadosBase64).");
+        setError("La imagen fue procesada, pero el servidor no retorno los datos de la imagen (DatosProcesadosBase64).");
         setProcessedImage(null);
         setImagePreviewUrl(null);
         return;
@@ -114,7 +114,7 @@ export default function Dashboard({ onLogout }) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`http://conversordeimagenes.somee.com/api/ImagenesProcesadas/${id}`);
+      const res = await fetch(`https://www.conversordeimagenes.somee.com/api/ImagenesProcesadas/${id}`);
       if (!res.ok) throw new Error("No se pudo obtener imagen procesada");
       const data = await res.json();
       if (!data.DatosProcesadosBase64 || data.DatosProcesadosBase64.trim() === "") {
@@ -171,7 +171,7 @@ export default function Dashboard({ onLogout }) {
     } else {
       setOriginalImagePreviewUrl(null);
     }
-    // Si seleccionás una imagen procesada de la galeria, cargarla:
+    // Si seleccionas una imagen procesada de la galeria, cargarla:
     if (image.idImagenProcesada) {
       fetchProcessedImageById(image.idImagenProcesada);
     }
