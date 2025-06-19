@@ -1,151 +1,115 @@
 import React, { useEffect, useState } from 'react';
+import api from '../../api/axios';
 import './CompareModal.css';
 
 export default function CompareModal({ isOpen, onClose }) {
-  //–– 1) lista original de imagenes ––
+  //–– 1) lista original de imágenes ––
   const [originalImages, setOriginalImages] = useState([]);
   const [loadingOriginals, setLoadingOriginals] = useState(false);
-  const [errorOriginals, setErrorOriginals] = useState(null);
+  const [errorOriginals, setErrorOriginals] = useState('');
 
-  //–– 2) lista de img procesadas ––
+  //–– 2) lista de imágenes procesadas ––
   const [processedImages, setProcessedImages] = useState([]);
   const [loadingProcessed, setLoadingProcessed] = useState(false);
-  const [errorProcessed, setErrorProcessed] = useState(null);
+  const [errorProcessed, setErrorProcessed] = useState('');
 
-  //–– 3) estado para la comparacion puntual ––
+  //–– 3) estados de comparación ––
   const [selectedOriginalId, setSelectedOriginalId] = useState('');
   const [selectedProcessedId, setSelectedProcessedId] = useState('');
   const [comparisonData, setComparisonData] = useState(null);
   const [loadingCompare, setLoadingCompare] = useState(false);
-  const [errorCompare, setErrorCompare] = useState(null);
+  const [errorCompare, setErrorCompare] = useState('');
 
-  // Cada vez que isOpen cambie a true, recargamos solo originales y procesadas
+  // Cada vez que isOpen pase a true, recargamos ambas listas
   useEffect(() => {
     if (!isOpen) return;
 
+    // reset
     setOriginalImages([]);
-    setErrorOriginals(null);
-    setLoadingOriginals(false);
+    setLoadingOriginals(true);
+    setErrorOriginals('');
     setProcessedImages([]);
-    setErrorProcessed(null);
-    setLoadingProcessed(false);
+    setLoadingProcessed(true);
+    setErrorProcessed('');
     setSelectedOriginalId('');
     setSelectedProcessedId('');
     setComparisonData(null);
-    setErrorCompare(null);
     setLoadingCompare(false);
+    setErrorCompare('');
 
-    //–– Cargar lista de imagenes Originales ––
-    setLoadingOriginals(true);
-    fetch('http://localhost:5288/api/Imagenes')
-      .then(async (res) => {
-        if (!res.ok) {
-          const text = await res.text();
-          console.error(`GET /api/Imagenes → ${res.status} : ${text}`);
-          throw new Error('No se pudo cargar las imágenes originales.');
-        }
-        return res.json();
-      })
-      .then((data) => {
-        const arr = data.map((img) => ({
+    // 1) fetch originales
+    api.get('/Imagenes')
+      .then(res => {
+        const arr = res.data.map(img => ({
           id: img.idImagen,
-          nombre: img.nombreArchivo || `ID ${img.idImagen}`,
+          nombre: img.nombreArchivo || `ID ${img.idImagen}`
         }));
         setOriginalImages(arr);
       })
-      .catch((err) => {
-        console.error('Error en fetch(Imagenes):', err);
-        setErrorOriginals('No se pudo cargar las imagenes originales.');
+      .catch(err => {
+        console.error('Error cargando imágenes originales:', err);
+        setErrorOriginals('No se pudo cargar las imágenes originales.');
       })
-      .finally(() => {
-        setLoadingOriginals(false);
-      });
+      .finally(() => setLoadingOriginals(false));
 
-    //–– Cargar lista de Imágenes Procesadas ––
-    setLoadingProcessed(true);
-    fetch('http://localhost:5288/api/ImagenesProcesadas')
-      .then(async (res) => {
-        if (!res.ok) {
-          const text = await res.text();
-          console.error(`GET /api/ImagenesProcesadas → ${res.status} : ${text}`);
-          throw new Error('No se pudo cargar las imagenes procesadas.');
-        }
-        return res.json();
-      })
-      .then((data) => {
-        const arr = data.map((img) => ({
+    // 2) fetch procesadas
+    api.get('/ImagenesProcesadas')
+      .then(res => {
+        const arr = res.data.map(img => ({
           id: img.idImagenProcesada,
-          nombre: `ID ${img.idImagenProcesada} (orig: ${img.idImagenOriginal})`,
+          nombre: `ID ${img.idImagenProcesada} (orig: ${img.idImagenOriginal})`
         }));
         setProcessedImages(arr);
       })
-      .catch((err) => {
-        console.error('Error en fetch(ImagenesProcesadas):', err);
-        setErrorProcessed('No se pudo cargar las imagenes procesadas.');
+      .catch(err => {
+        console.error('Error cargando imágenes procesadas:', err);
+        setErrorProcessed('No se pudo cargar las imágenes procesadas.');
       })
-      .finally(() => {
-        setLoadingProcessed(false);
-      });
+      .finally(() => setLoadingProcessed(false));
   }, [isOpen]);
 
   const handleCompare = () => {
-    setErrorCompare(null);
+    setErrorCompare('');
     setComparisonData(null);
 
     if (!selectedOriginalId || !selectedProcessedId) {
-      setErrorCompare('Debes seleccionar ambas imagenes.');
+      setErrorCompare('Debes seleccionar ambas imágenes.');
       return;
     }
     if (selectedOriginalId === selectedProcessedId) {
-      setErrorCompare('No puedes comparar la misma imagen consigo misma.');
+      setErrorCompare('No puedes comparar la misma imagen.');
       return;
     }
 
     setLoadingCompare(true);
-    fetch('http://localhost:5288/api/Comparaciones/comparar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        IdImagenOriginal: Number(selectedOriginalId),
-        IdImagenProcesada: Number(selectedProcessedId),
-      }),
+    api.post('/Comparaciones/comparar', {
+      IdImagenOriginal: Number(selectedOriginalId),
+      IdImagenProcesada: Number(selectedProcessedId),
     })
-      .then(async (res) => {
-        if (!res.ok) {
-          const text = await res.text();
-          console.error(`POST /api/Comparaciones/comparar → ${res.status} : ${text}`);
-          throw new Error('No se pudo procesar la comparacion.');
-        }
-        return res.json();
-      })
-      .then((data) => {
+      .then(res => {
+        const data = res.data;
         setComparisonData({
-          idComparacion: data.idComparacion,
           mse: data.mse,
           psnr: data.psnr,
           imagenDiferenciasBase64: data.imagenDiferenciasBase64,
-          fechaComparacion: data.fechaComparacion,
+          fechaComparacion: data.fechaComparacion
         });
       })
-      .catch((err) => {
-        console.error('Error en POST Comparar:', err);
-        setErrorCompare('Error al cargar los datos de comparacion.');
+      .catch(err => {
+        console.error('Error al comparar imágenes:', err);
+        setErrorCompare('Error al cargar los datos de comparación.');
       })
-      .finally(() => {
-        setLoadingCompare(false);
-      });
+      .finally(() => setLoadingCompare(false));
   };
 
-  if (!isOpen) {
-    return null;
-  }
+  if (!isOpen) return null;
 
   return (
     <div className="compare-modal-overlay">
       <div className="compare-modal-container">
         <h2>Comparar Imágenes</h2>
 
-        {/* Selección de Imagen Original */}
+        {/* Original */}
         <div className="compare-modal-field">
           <label>Imagen Original:</label>
           {loadingOriginals ? (
@@ -155,10 +119,10 @@ export default function CompareModal({ isOpen, onClose }) {
           ) : (
             <select
               value={selectedOriginalId}
-              onChange={(e) => setSelectedOriginalId(e.target.value)}
+              onChange={e => setSelectedOriginalId(e.target.value)}
             >
               <option value="">-- Selecciona --</option>
-              {originalImages.map((img) => (
+              {originalImages.map(img => (
                 <option key={img.id} value={img.id}>
                   {img.nombre}
                 </option>
@@ -167,8 +131,8 @@ export default function CompareModal({ isOpen, onClose }) {
           )}
         </div>
 
-        {/* Seleccion de Imagen Procesada */}
-        <div className="compare-modal-field" style={{ marginTop: '1rem' }}>
+        {/* Procesada */}
+        <div className="compare-modal-field">
           <label>Imagen Procesada:</label>
           {loadingProcessed ? (
             <p>Cargando imágenes procesadas…</p>
@@ -177,10 +141,10 @@ export default function CompareModal({ isOpen, onClose }) {
           ) : (
             <select
               value={selectedProcessedId}
-              onChange={(e) => setSelectedProcessedId(e.target.value)}
+              onChange={e => setSelectedProcessedId(e.target.value)}
             >
               <option value="">-- Selecciona --</option>
-              {processedImages.map((img) => (
+              {processedImages.map(img => (
                 <option key={img.id} value={img.id}>
                   {img.nombre}
                 </option>
@@ -189,25 +153,19 @@ export default function CompareModal({ isOpen, onClose }) {
           )}
         </div>
 
-        {/* Botón “Mostrar Comparación” */}
-        <div style={{ marginTop: '1.25rem' }}>
-          <button
-            className="compare-modal-button"
-            onClick={handleCompare}
-            disabled={loadingCompare}
-          >
-            {loadingCompare ? 'Cargando…' : 'Mostrar Comparacion'}
-          </button>
-          {errorCompare && (
-            <p className="compare-modal-error" style={{ marginTop: '0.5rem' }}>
-              {errorCompare}
-            </p>
-          )}
-        </div>
+        {/* Botón comparar */}
+        <button
+          className="compare-modal-button"
+          onClick={handleCompare}
+          disabled={loadingCompare}
+        >
+          {loadingCompare ? 'Cargando…' : 'Mostrar Comparación'}
+        </button>
+        {errorCompare && <p className="compare-modal-error">{errorCompare}</p>}
 
-        {/* Resultado puntual (MSE / PSNR / Imagen de diferencias) */}
+        {/* Resultados */}
         {comparisonData && (
-          <div className="compare-modal-results" style={{ marginTop: '1.5rem' }}>
+          <div className="compare-modal-results">
             <h3>Resultado de la Comparación</h3>
             <table className="compare-modal-table">
               <tbody>
@@ -221,18 +179,19 @@ export default function CompareModal({ isOpen, onClose }) {
                 </tr>
                 <tr>
                   <td><strong>Fecha</strong></td>
-                  <td>{new Date(comparisonData.fechaComparacion).toLocaleString()}</td>
+                  <td>
+                    {new Date(comparisonData.fechaComparacion)
+                      .toLocaleString()}
+                  </td>
                 </tr>
                 <tr>
                   <td><strong>Imagen Diferencias</strong></td>
                   <td>
-                    {comparisonData.imagenDiferenciasBase64 ? (
-                      <img
-                        src={`data:image/png;base64,${comparisonData.imagenDiferenciasBase64}`}
-                        alt="Diferencias"
-                        style={{ maxWidth: '100%', height: 'auto' }}
-                      />
-                    ) : '–'}
+                    <img
+                      src={`data:image/png;base64,${comparisonData.imagenDiferenciasBase64}`}
+                      alt="Diferencias"
+                      style={{ maxWidth: '100%', height: 'auto' }}
+                    />
                   </td>
                 </tr>
               </tbody>
@@ -240,11 +199,10 @@ export default function CompareModal({ isOpen, onClose }) {
           </div>
         )}
 
-        {/* Boton “Cerrar” */}
+        {/* Cerrar */}
         <button
           className="compare-modal-close"
           onClick={onClose}
-          style={{ marginTop: '1.5rem' }}
         >
           Cerrar
         </button>

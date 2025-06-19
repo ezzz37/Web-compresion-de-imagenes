@@ -1,9 +1,9 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://www.conversordelimagenes.somee.com/api', //url de produccion de mi API
+  baseURL: 'http://conversordeimagenes.somee.com/api',  // apunta al backend desplegado
   headers: {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json'
   }
 });
 
