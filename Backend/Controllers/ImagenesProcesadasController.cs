@@ -128,7 +128,7 @@ namespace Backend.Controllers
                 IdAlgoritmoCompresion = dto.IdAlgoritmoCompresion,
                 DatosProcesados = comprimido,
                 FechaProcesamiento = DateTime.UtcNow,
-                RatioCompresion = ratioCompresion // <--- Guardar el ratio
+                RatioCompresion = ratioCompresion
             };
 
             _db.ImagenesProcesadas.Add(procEnt);

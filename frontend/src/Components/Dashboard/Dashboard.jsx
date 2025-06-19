@@ -32,7 +32,7 @@ export default function Dashboard({ onLogout }) {
 
   const handleUpload = async () => {
     if (!selectedFile) {
-      alert("Por favor seleccioná un archivo primero");
+      alert("Por favor selecciona un archivo primero");
       return;
     }
     setLoading(true);
@@ -63,7 +63,7 @@ export default function Dashboard({ onLogout }) {
 
   const handleProcess = async () => {
     if (!uploadedImage) {
-      alert("Primero subí una imagen");
+      alert("Primero subi una imagen");
       return;
     }
     setLoading(true);
@@ -90,7 +90,6 @@ export default function Dashboard({ onLogout }) {
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
 
-      // ¡ACÁ EL CAMPO DEBE IR CON MAYÚSCULA!
       if (!data.DatosProcesadosBase64 || data.DatosProcesadosBase64.trim() === "") {
         setError("La imagen fue procesada, pero el servidor no retornó los datos de la imagen (DatosProcesadosBase64).");
         setProcessedImage(null);
@@ -98,7 +97,6 @@ export default function Dashboard({ onLogout }) {
         return;
       }
 
-      // El MIME se detecta según el algoritmo recibido
       const mime = data.algoritmo?.toLowerCase() === "png" ? "png" : "jpeg";
       setImagePreviewUrl(`data:image/${mime};base64,${data.DatosProcesadosBase64}`);
       setProcessedImage(data);
@@ -111,7 +109,7 @@ export default function Dashboard({ onLogout }) {
     }
   };
 
-  // Si quieres poder ver de nuevo una imagen procesada desde la galería o el historial:
+  // Si quieres poder ver de nuevo una imagen procesada desde la galeria o el historial:
   const fetchProcessedImageById = async (id) => {
     setLoading(true);
     setError(null);
@@ -173,7 +171,7 @@ export default function Dashboard({ onLogout }) {
     } else {
       setOriginalImagePreviewUrl(null);
     }
-    // Si seleccionás una imagen procesada de la galería, cargarla:
+    // Si seleccionás una imagen procesada de la galeria, cargarla:
     if (image.idImagenProcesada) {
       fetchProcessedImageById(image.idImagenProcesada);
     }
@@ -200,8 +198,8 @@ export default function Dashboard({ onLogout }) {
     <div className="App">
       <header className="app-header">
         <div>
-          <h1>Digitalizador de Imágenes</h1>
-          <p>Convierte imágenes analógicas a formato digital con diferentes parámetros</p>
+          <h1>Digitalizador de Imagenes</h1>
+          <p>Convierte imágenes analogicas a formato digital con diferentes parametros</p>
         </div>
         <button className="btn-logout" onClick={onLogout}>
           Cerrar Sesión
@@ -240,7 +238,7 @@ export default function Dashboard({ onLogout }) {
                   zIndex: 1,
                 }}
               >
-                Arrastra una imagen o hacé clic para seleccionar
+                Arrastra una imagen o hace clic para seleccionar
               </span>
             )}
             {originalImagePreviewUrl && (
@@ -265,7 +263,7 @@ export default function Dashboard({ onLogout }) {
             >
               {loading ? "Subiendo..." : "Cargar Imagen"}
             </button>
-            <button onClick={toggleGallery}>Ver Imágenes Cargadas</button>
+            <button onClick={toggleGallery}>Ver Imagenes Cargadas</button>
           </div>
         </div>
 
@@ -329,14 +327,14 @@ export default function Dashboard({ onLogout }) {
       </section>
 
       <section className="params">
-        <h2>Parámetros de Digitalización</h2>
+        <h2>Parametros de Digitalizacion</h2>
 
         <div className="digitalization-row">
           <div className="param-group">
             <div className="param-label">
               <h3>Muestreo (Resolución)</h3>
               <span>
-                Resolución: {resolution}×{resolution}
+                Resolucion: {resolution}×{resolution}
               </span>
             </div>
             <input
@@ -415,7 +413,7 @@ export default function Dashboard({ onLogout }) {
               padding: "0.5rem 1rem",
             }}
           >
-            Comparar Imágenes
+            Comparar Imagenes
           </button>
         </div>
 

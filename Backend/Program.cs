@@ -37,7 +37,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false; // Importante para desarrollo local
+    options.RequireHttpsMetadata = false; // solo para desarrollo en local
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -99,5 +99,4 @@ app.UseAuthorization();
 // 14) Mapear controladores
 app.MapControllers();
 
-// 15) Ejecutar la aplicación
 app.Run();

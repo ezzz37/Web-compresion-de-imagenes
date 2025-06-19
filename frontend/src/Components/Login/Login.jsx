@@ -19,7 +19,7 @@ const Login = () => {
     localStorage.removeItem('tokenExpiration');
 
     try {
-      // Envía la request SIN el header Authorization, aunque haya un token viejo
+      // Envia la request SIN el header Authorization, aunque haya un token viejo
       const response = await api.post(
         '/auth/login', // ← URL correcta para tu backend
         { username, password },
@@ -42,7 +42,7 @@ const Login = () => {
       localStorage.removeItem('token');
       localStorage.removeItem('tokenExpiration');
       if (err.response?.status === 401) {
-        setError('Usuario o contraseña inválidos.');
+        setError('Usuario o contraseña invalidos.');
       } else {
         setError('Error al conectar con el servidor.');
       }
