@@ -17,15 +17,6 @@
   * [Instalación](#instalación)
   * [Uso](#uso)
   * [Pruebas](#pruebas)
- 
-
- # Integrantes:
-
-Pretti Ezequiel 33427
-Jesus Vergara 33319
-cuervo emiliano 33340
-iannotta Sebastián 33751
-Fiuza Pedro 33142
 
 ---
 
