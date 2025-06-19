@@ -21,8 +21,10 @@ builder.Services.AddScoped<UsuarioService>();
 
 // 3) JWT
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
-var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()
-    ?? throw new InvalidOperationException("Falta sección JwtSettings");
+var jwtSettings = builder.Configuration
+                         .GetSection("JwtSettings")
+                         .Get<JwtSettings>()
+                 ?? throw new InvalidOperationException("Falta sección JwtSettings");
 var keyBytes = Encoding.UTF8.GetBytes(jwtSettings.SecretKey);
 
 builder.Services.AddAuthentication(options =>
@@ -32,7 +34,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = true;  // en producción HTTPS
+    options.RequireHttpsMetadata = true;  // en producción siempre HTTPS
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -47,19 +49,18 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// 4) CORS: añade aquí tu dominio de producción
+// 4) CORS: Orígenes permitidos para el front React
 builder.Services.AddCors(opts =>
 {
     opts.AddPolicy("ReactPolicy", policy =>
     {
         policy
           .WithOrigins(
-              "http://localhost:3000", // desarrollo
-              "https://www.conversordelimagenes.somee.com" // producción
+              "http://localhost:3000",                          // desarrollo local
+              "https://web-compresion-de-imagenes.vercel.app"   // front desplegado en Vercel
           )
           .AllowAnyHeader()
           .AllowAnyMethod();
-        // .AllowCredentials();  // sólo si usas cookies o withCredentials
     });
 });
 
@@ -85,10 +86,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Importante: si quieres usar endpoint routing explícito
+// Si usas endpoint routing explícito:
 app.UseRouting();
 
-//  CORS debe ir **antes** de Auth
+//  CORS debe ir antes de Authentication/Authorization
 app.UseCors("ReactPolicy");
 
 app.UseAuthentication();
