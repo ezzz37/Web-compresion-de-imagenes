@@ -25,7 +25,6 @@ namespace Backend.Controllers
         }
 
         // GET: api/ImagenesProcesadas
-        // Devuelve sólo { IdImagenProcesada, IdImagenOriginal } para poblar el <select> de imágenes procesadas
         [HttpGet]
         [Produces("application/json")]
         public async Task<ActionResult<IEnumerable<ImagenProcesadaSimpleDto>>> GetTodas()
@@ -43,7 +42,6 @@ namespace Backend.Controllers
         }
 
         // GET: api/ImagenesProcesadas/5
-        // Devuelve detalles de una ImagenProcesada
         [HttpGet("{id}")]
         [Produces("application/json")]
         public async Task<ActionResult<ImagenProcesadaResponseDto>> GetPorId(int id)
@@ -78,7 +76,6 @@ namespace Backend.Controllers
         }
 
         // POST: api/ImagenesProcesadas/procesar/{idImagen}
-        // Procesa la imagen original y guarda la nueva ImagenProcesada
         [HttpPost("procesar/{idImagen}")]
         [Consumes("application/json")]
         [Produces("application/json")]
@@ -115,6 +112,13 @@ namespace Backend.Controllers
             if (comprimido == null || comprimido.Length == 0)
                 return StatusCode(500, "Error: el procesamiento de la imagen no generó datos.");
 
+            // Calcular ratio de compresión
+            var originalSize = orig.DatosImagen?.Length ?? 1;
+            var compressedSize = comprimido?.Length ?? 1;
+            double? ratioCompresion = null;
+            if (compressedSize > 0)
+                ratioCompresion = (double)originalSize / compressedSize;
+
             var procEnt = new ImagenProcesada
             {
                 IdImagenOriginal = idImagen,
@@ -123,7 +127,8 @@ namespace Backend.Controllers
                 ProfundidadBits = dto.ProfundidadBits,
                 IdAlgoritmoCompresion = dto.IdAlgoritmoCompresion,
                 DatosProcesados = comprimido,
-                FechaProcesamiento = DateTime.UtcNow
+                FechaProcesamiento = DateTime.UtcNow,
+                RatioCompresion = ratioCompresion
             };
 
             _db.ImagenesProcesadas.Add(procEnt);

@@ -44,21 +44,18 @@ namespace Backend.Data
                 .HasOne(ip => ip.AlgoritmoCompresion)
                 .WithMany(a => a.ImagenesProcesadas)
                 .HasForeignKey(ip => ip.IdAlgoritmoCompresion)
-                // Si borras un algoritmo, no quieres que borre en cascada las imágenes procesadas:
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Comparacion>()
                 .HasOne(c => c.ImagenOriginal)
                 .WithMany(img => img.ComparacionesOriginal)
                 .HasForeignKey(c => c.IdImagenOriginal)
-                // Al eliminar una Imagen original, NO eliminar todas sus comparaciones automáticamente:
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Comparacion>()
                 .HasOne(c => c.ImagenProcesada)
                 .WithMany(ip => ip.Comparaciones)
                 .HasForeignKey(c => c.IdImagenProcesada)
-                // Si eliminas la ImagenProcesada, eliminar en cascada las comparaciones asociadas:
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Comparacion>()

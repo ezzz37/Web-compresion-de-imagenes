@@ -10,7 +10,6 @@ namespace Backend.Models
     {
         public Imagen()
         {
-            // Inicializar colecciones para evitar NullReferenceException
             ImagenesProcesadas = new List<ImagenProcesada>();
             ComparacionesOriginal = new List<Comparacion>();
         }
@@ -110,7 +109,7 @@ namespace Backend.Models
         [ForeignKey(nameof(ImagenProcesada))]
         public int IdImagenProcesada { get; set; }
 
-        // Navegación a la imagen procesada
+        // Navegacion a la imagen procesada
         public ImagenProcesada ImagenProcesada { get; set; }
 
         public double? MSE { get; set; }

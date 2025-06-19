@@ -17,5 +17,5 @@ public class ImagenProcesadaResponseDto
     public string Algoritmo { get; set; } = string.Empty;
 
     [JsonPropertyName("DatosProcesadosBase64")]
-    public string DatosProcesadosBase64 { get; set; }
+    public string? DatosProcesadosBase64 { get; set; }
 }

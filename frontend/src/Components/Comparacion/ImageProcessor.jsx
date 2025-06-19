@@ -14,7 +14,7 @@ export default function ImageProcessor() {
 
   return (
     <div className="image-processor-container">
-      {/* Aquí irían tus controles de resolución, color, compresión, etc. */}
+      {/* Aqui irian tus controles de resolución, color, compresion, etc. */}
       {/* … */}
       <div className="buttons-row">
         {/* Tu botón original para procesar imagen */}
@@ -22,7 +22,7 @@ export default function ImageProcessor() {
           Procesar Imagen
         </button>
 
-        {/* Nuevo botón para abrir el modal de comparaciones */}
+        {/* Nuevo boton para abrir el modal de comparaciones */}
         <button
           className="btn-comparar-imagen"
           onClick={handleOpenCompare}
