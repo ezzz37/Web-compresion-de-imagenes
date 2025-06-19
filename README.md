@@ -25,6 +25,12 @@ Db: deploy en somee
 Backend: deploy en el IIS de somee
 Frontend: en vercel
 
+CREDENCIALES POR DEFECTO
+-------------------------
+Usuario: 1
+Clave: 1
+-------------------------
+
 https://web-compresion-de-imagenes.vercel.app/
 
 # Integrantes:
