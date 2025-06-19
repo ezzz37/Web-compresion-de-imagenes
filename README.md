@@ -20,6 +20,13 @@
 
 ---
 
+# Link del Deploy
+Db: deploy en somee
+Backend: deploy en el IIS de somee
+Frontend: en vercel
+
+https://web-compresion-de-imagenes.vercel.app/
+
 # Integrantes:
 
 Pretti Ezequiel 33427
