@@ -1,7 +1,5 @@
 # WEB-COMPRESIÓN-DE-IMÁGENES
 
-*Reduce el tamaño de las imágenes, mejora la velocidad y la experiencia del usuario*
-
 ![Último commit: hoy](https://img.shields.io/badge/last%20commit-hoy-brightgreen) ![C# 45.4%](https://img.shields.io/badge/C%23-45.4%25-blue) ![Lenguajes: 6](https://img.shields.io/badge/lenguajes-6-lightgrey)
 
 **Construido con las herramientas y tecnologías:**
