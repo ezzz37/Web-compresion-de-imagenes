@@ -31,7 +31,7 @@ Usuario: 1
 Clave: 1
 -------------------------
 
-https://web-compresion-de-imagenes.vercel.app/
+Link: https://web-compresion-de-imagenes.vercel.app/
 
 # Integrantes:
 
