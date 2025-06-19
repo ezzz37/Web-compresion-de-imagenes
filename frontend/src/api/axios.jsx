@@ -1,12 +1,11 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5288/api',
+  baseURL: 'https://www.conversordelimagenes.somee.com/api', //url de produccion de mi API
   headers: {
     'Content-Type': 'application/json',
   }
 });
-
 
 api.interceptors.request.use(
   (config) => {

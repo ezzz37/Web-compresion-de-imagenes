@@ -7,29 +7,24 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
-// 1) Crear el builder
 var builder = WebApplication.CreateBuilder(args);
 
-// 2) Configurar DbContext con la cadena "DefaultConnection"
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-           .LogTo(Console.WriteLine, LogLevel.Information)
+// 1) DbContext
+builder.Services.AddDbContext<AppDbContext>(opt =>
+    opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+       .LogTo(Console.WriteLine, LogLevel.Information)
 );
 
-// 3) Registrar servicios propios
+// 2) Servicios
 builder.Services.AddScoped<IImageProcessorService, ImageProcessorService>();
 builder.Services.AddScoped<UsuarioService>();
 
-// 4) Leer y configurar JWT desde appsettings.json
+// 3) JWT
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
-var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
-if (jwtSettings == null)
-{
-    throw new InvalidOperationException("La sección 'JwtSettings' no está configurada en appsettings.json");
-}
+var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()
+    ?? throw new InvalidOperationException("Falta sección JwtSettings");
 var keyBytes = Encoding.UTF8.GetBytes(jwtSettings.SecretKey);
 
-// 5) Configurar autenticación JWT
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -37,7 +32,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false; // solo para desarrollo en local
+    options.RequireHttpsMetadata = true;  // en producción HTTPS
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -52,51 +47,53 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// 6) Registrar autorización
-builder.Services.AddAuthorization();
-
-// 7) Configurar CORS para React en localhost:3000
-builder.Services.AddCors(options =>
+// 4) CORS: añade aquí tu dominio de producción
+builder.Services.AddCors(opts =>
 {
-    options.AddPolicy("ReactPolicy", policy =>
-        policy.WithOrigins("http://localhost:3000")
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-    // .AllowCredentials() // Descomentar SOLO si usás cookies o withCredentials:true en Axios
-    );
+    opts.AddPolicy("ReactPolicy", policy =>
+    {
+        policy
+          .WithOrigins(
+              "http://localhost:3000", // desarrollo
+              "https://www.conversordelimagenes.somee.com" // producción
+          )
+          .AllowAnyHeader()
+          .AllowAnyMethod();
+        // .AllowCredentials();  // sólo si usas cookies o withCredentials
+    });
 });
 
-// 8) Configurar controladores y JSON
+// 5) Controladores & JSON
 builder.Services.AddControllers()
-    .AddJsonOptions(opts =>
-    {
-        opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-    });
+    .AddJsonOptions(o =>
+        o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles
+    );
 
-// 9) Swagger / OpenAPI
+// 6) Swagger (opcional)
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// 10) Habilitar Swagger en desarrollo
+// --- pipeline ---
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// 11) Habilitar HTTPS Redirection (puede mostrar warning si no está configurado en dev, pero no es grave)
 app.UseHttpsRedirection();
 
-// 12) Habilitar CORS antes de autenticación
+// Importante: si quieres usar endpoint routing explícito
+app.UseRouting();
+
+//  CORS debe ir **antes** de Auth
 app.UseCors("ReactPolicy");
 
-// 13) Habilitar autenticación y autorización
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 14) Mapear controladores
 app.MapControllers();
 
 app.Run();
