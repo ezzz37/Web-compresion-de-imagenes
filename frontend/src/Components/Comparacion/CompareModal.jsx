@@ -1,3 +1,4 @@
+// src/components/Compare/CompareModal.jsx
 import React, { useEffect, useState } from 'react';
 import api from '../../api/axios';
 import './CompareModal.css';
@@ -20,7 +21,7 @@ export default function CompareModal({ isOpen, onClose }) {
   const [loadingCompare, setLoadingCompare] = useState(false);
   const [errorCompare, setErrorCompare] = useState('');
 
-  // Cada vez que isOpen pase a true, recargamos ambas listas
+  // cada vez que isOpen pase a true, recargamos ambas listas
   useEffect(() => {
     if (!isOpen) return;
 
@@ -76,16 +77,25 @@ export default function CompareModal({ isOpen, onClose }) {
       setErrorCompare('Debes seleccionar ambas imágenes.');
       return;
     }
-    if (selectedOriginalId === selectedProcessedId) {
+    if (Number(selectedOriginalId) === Number(selectedProcessedId)) {
       setErrorCompare('No puedes comparar la misma imagen.');
       return;
     }
 
     setLoadingCompare(true);
-    api.post('/Comparaciones/comparar', {
-      IdImagenOriginal: Number(selectedOriginalId),
-      IdImagenProcesada: Number(selectedProcessedId),
-    })
+    const token = localStorage.getItem('token');
+    api.post(
+      '/Comparaciones/comparar',
+      {
+        IdImagenOriginal: Number(selectedOriginalId),
+        IdImagenProcesada: Number(selectedProcessedId),
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    )
       .then(res => {
         const data = res.data;
         setComparisonData({

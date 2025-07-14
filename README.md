@@ -20,6 +20,19 @@
 
 ---
 
+# Link del Deploy
+Db: deploy en somee
+Backend: deploy en el IIS de somee
+Frontend: en vercel
+
+CREDENCIALES POR DEFECTO
+-------------------------
+Usuario: 1
+Clave: 1
+-------------------------
+
+Link: https://web-compresion-de-imagenes.vercel.app/
+
 # Integrantes:
 
 Pretti Ezequiel 33427
